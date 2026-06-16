@@ -1,0 +1,20 @@
+# Ignorar arquivos compilados do Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignorar pastas de distribuição e metadados de pacotes
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Ignorar ambientes virtuais (caso você crie um na raiz depois)
+venv/
+.venv/
+env/
+
+# Ignorar arquivos de configuração de IDEs (opcional, mas recomendado)
+.vscode/
+.idea/

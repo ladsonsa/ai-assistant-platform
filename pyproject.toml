@@ -1,0 +1,6 @@
+[project]
+name = "chatbot_ai"
+version = "0.1.0"
+
+[tool.setuptools]
+packages = ["chatbot_ai"]
