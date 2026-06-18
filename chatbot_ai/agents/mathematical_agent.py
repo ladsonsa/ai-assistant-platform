@@ -1,11 +1,7 @@
 from pydantic import BaseModel
 
-from chatbot_ai.tools.calculator import(
-    add,
-    subtract,
-    multiply,
-    divide
-)
+from chatbot_ai.tools.math_operations import add, subtract, multiply, divide
+
 
 class mathematical_agent:
 
@@ -16,15 +12,15 @@ class mathematical_agent:
         pass
 
         if operation == "addition":
-            return calculator.add(number_1, number_2)
-    
+            return math_operations.add(number_1, number_2)
+
         if operation == "subtraction":
-            return calculator.subtract(number_1, number_2)
-    
+            return math_operations.subtract(number_1, number_2)
+
         if operation == "multiplication":
-            return calculator.multiply(number_1, number_2)
+            return math_operations.multiply(number_1, number_2)
 
         if operation == "division":
-            return calculator.divide(number_1, number_2)
+            return math_operations.divide(number_1, number_2)
 
         raise ValueError("Unsupported operation.")

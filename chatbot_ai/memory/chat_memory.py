@@ -8,6 +8,7 @@ def initialize_chat_memory() -> None:
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
+
 def add_messages(
     role: str,
     content: str,
@@ -17,15 +18,14 @@ def add_messages(
     """
     st.session_state.messages.append(
         {
-        "role": role,
-        "content": content, 
+            "role": role,
+            "content": content,
         }
     )
-    
-def get_chat_history() -> list[dict]:
 
+
+def get_chat_history() -> list[dict]:
     """
     Return all conversation to history.
     """
     return st.session_state.messages
-
