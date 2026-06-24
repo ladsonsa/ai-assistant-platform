@@ -5,4 +5,3 @@ agent = MathematicalAgent()
 result = agent.solve("addition", 2, 3)
 
 assert result == 5
-
