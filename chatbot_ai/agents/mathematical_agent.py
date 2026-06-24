@@ -1,10 +1,7 @@
-from pydantic import BaseModel
-
 from chatbot_ai.math_tools.math_operations import add, subtract, multiply, divide
 
 
 class MathematicalAgent:
-
     def __init__(self):
         pass
 

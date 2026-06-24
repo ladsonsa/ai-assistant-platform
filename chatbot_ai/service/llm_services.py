@@ -4,7 +4,6 @@ from chatbot_ai.config.settings import OPENAI_API_KEY, MODEL_NAME
 
 
 class LLMService:
-
     def __init__(self):
         self.client = OpenAI(api_key=OPENAI_API_KEY)
 
@@ -17,5 +16,4 @@ class LLMService:
             return response.choices[0].message.content
 
         except Exception as error:
-
             return f"An error occurred while generating the response: {error}"

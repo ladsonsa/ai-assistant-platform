@@ -2,7 +2,6 @@ from chatbot_ai.service.llm_services import LLMService
 
 
 class WriterAgent:
-
     WRITER_PROMPT = """
     You are a Writer Agent.
 
