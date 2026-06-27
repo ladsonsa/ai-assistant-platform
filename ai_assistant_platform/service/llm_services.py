@@ -1,6 +1,6 @@
 from openai import OpenAI
 
-from chatbot_ai.config.settings import OPENAI_API_KEY, MODEL_NAME
+from ai_assistant_platform.config.settings import OPENAI_API_KEY, MODEL_NAME
 
 
 class LLMService:
