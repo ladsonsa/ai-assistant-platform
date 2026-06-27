@@ -1,4 +1,4 @@
-from chatbot_ai.math_tools.math_operations import add, subtract, multiply, divide
+from ai_assistant_platform.tools.math_operations import add, subtract, multiply, divide
 
 
 class MathematicalAgent:

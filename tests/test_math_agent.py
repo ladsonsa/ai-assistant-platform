@@ -1,4 +1,4 @@
-from chatbot_ai.agents.mathematical_agent import MathematicalAgent
+from ai_assistant_platform.agents.mathematical_agent import MathematicalAgent
 
 agent = MathematicalAgent()
 

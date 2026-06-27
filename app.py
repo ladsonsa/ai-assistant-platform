@@ -1,10 +1,10 @@
 import streamlit as st
-from chatbot_ai.memory.chat_memory import (
+from ai_assistant_platform.memory.chat_memory import (
     initialize_chat_memory,
     add_messages,
     get_chat_history,
 )
-from chatbot_ai.service.llm_services import generate_response
+from ai_assistant_platform.llm.llm_services import LLMService
 
 initialize_chat_memory()
 

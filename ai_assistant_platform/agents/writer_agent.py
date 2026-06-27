@@ -1,4 +1,4 @@
-from chatbot_ai.service.llm_services import LLMService
+from ai_assistant_platform.service.llm_services import LLMService
 
 
 class WriterAgent:
