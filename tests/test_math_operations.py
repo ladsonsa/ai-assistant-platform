@@ -1,4 +1,4 @@
-from ai_assistant_platform.math_tools import (
+from ai_assistant_platform.tools import (
     add,
     divide,
     multiply,
