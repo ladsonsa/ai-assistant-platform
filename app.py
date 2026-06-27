@@ -4,7 +4,7 @@ from ai_assistant_platform.memory.chat_memory import (
     add_messages,
     get_chat_history,
 )
-from ai_assistant_platform.service.llm_services import generate_response
+from ai_assistant_platform.llm.llm_services import LLMService
 
 initialize_chat_memory()
 
