@@ -1,21 +1,79 @@
-def add(a: float, b: float) -> float:
+def add(
+    number_1: float,
+    number_2: float,
+) -> float:
+    """
+    Perform an addition operation.
 
-    return a + b
+    Args:
+        number_1: First operand.
+        number_2: Second operand.
+
+    Returns:
+        Sum of both operands.
+    """
+
+    return number_1 + number_2
 
 
-def subtract(a: float, b: float) -> float:
+def subtract(
+    number_1: float,
+    number_2: float,
+) -> float:
+    """
+    Perform a subtraction operation.
 
-    return a - b
+    Args:
+        number_1: First operand.
+        number_2: Second operand.
+
+    Returns:
+        Difference between operands.
+    """
+
+    return number_1 - number_2
 
 
-def multiply(a: float, b: float) -> float:
+def multiply(
+    number_1: float,
+    number_2: float,
+) -> float:
+    """
+    Perform a multiplication operation.
 
-    return a * b
+    Args:
+        number_1: First operand.
+        number_2: Second operand.
+
+    Returns:
+        Product of both operands.
+    """
+
+    return number_1 * number_2
 
 
-def divide(a: float, b: float) -> float:
+def divide(
+    number_1: float,
+    number_2: float,
+) -> float:
+    """
+    Perform a division operation.
 
-    if b == 0:
-        raise ValueError("Division by zero is not allowed.")
+    Args:
+        number_1: Dividend.
+        number_2: Divisor.
 
-    return a / b
+    Returns:
+        Division result.
+
+    Raises:
+        ValueError:
+            If division by zero is attempted.
+    """
+
+    if number_2 == 0:
+        raise ValueError(
+            "Division by zero is not allowed."
+        )
+
+    return number_1 / number_2
