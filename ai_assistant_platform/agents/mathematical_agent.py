@@ -1,22 +1,63 @@
-from ai_assistant_platform.tools.math_operations import add, subtract, multiply, divide
+from ai_assistant_platform.tools.math_operations import (
+    add,
+    divide,
+    multiply,
+    subtract,
+)
 
 
 class MathematicalAgent:
-    def __init__(self):
-        pass
+    """
+    Specialized agent responsible for mathematical operations.
 
-    def solve(self, operation: str, number_1: float, number_2: float) -> float:
+    This agent acts as an abstraction layer between the
+    orchestration layer and the mathematical tools.
 
-        if operation == "addition":
-            return add(number_1, number_2)
+    Responsibilities:
+        - Select the appropriate mathematical tool.
+        - Execute calculations through tools.
+        - Return calculation results.
 
-        elif operation == "subtraction":
-            return subtract(number_1, number_2)
+    Limitations:
+        - Does not generate user-facing responses.
+        - Does not answer general knowledge questions.
+        - Does not perform calculations using LLM reasoning.
+    """
 
-        elif operation == "multiplication":
-            return multiply(number_1, number_2)
+    def solve(
+        self,
+        operation: str,
+        number_1: float,
+        number_2: float,
+    ) -> float:
+        """
+        Execute a mathematical operation using the corresponding tool.
 
-        elif operation == "division":
-            return divide(number_1, number_2)
+        Args:
+            operation: Operation identifier.
+            number_1: First operand.
+            number_2: Second operand.
 
-        raise ValueError("Unsupported operation.")
+        Returns:
+            Result of the mathematical operation.
+
+        Raises:
+            ValueError: If the operation is not supported.
+        """
+
+        operations = {
+            "addition": add,
+            "subtraction": subtract,
+            "multiplication": multiply,
+            "division": divide,
+        }
+
+        if operation not in operations:
+            raise ValueError(
+                f"Unsupported operation: {operation}"
+            )
+
+        return operations[operation](
+            number_1,
+            number_2,
+        )
