@@ -60,11 +60,6 @@ def main() -> None:
                 conversation_history=get_chat_history(),
             )
 
-        assistant_response = orchestrator.process_message(
-            user_message=user_input,
-            conversation_history=get_chat_history(),
-        )
-
         add_messages(
             role="assistant",
             content=assistant_response,
