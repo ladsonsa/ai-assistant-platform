@@ -72,8 +72,6 @@ def divide(
     """
 
     if number_2 == 0:
-        raise ValueError(
-            "Division by zero is not allowed."
-        )
+        raise ValueError("Division by zero is not allowed.")
 
     return number_1 / number_2
