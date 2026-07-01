@@ -11,8 +11,24 @@ from ai_assistant_platform.llm.providers.base_provider import (
 
 
 class OpenAIProvider(BaseLLMProvider):
+    """
+    Language model provider for OpenAI's Chat Completions API.
+
+    This class implements the BaseLLMProvider interface using OpenAI's
+    SDK to generate responses from chat-based language models.
+
+    Attributes:
+        client (OpenAI):
+            Authenticated OpenAI client used to communicate with the API.
+    """
 
     def __init__(self) -> None:
+        """
+        Initialize the OpenAI provider.
+
+        Creates an authenticated OpenAI client using the configured API key.
+        """
+    
         self.client = OpenAI(
             api_key=OPENAI_API_KEY,
         )
@@ -21,7 +37,19 @@ class OpenAIProvider(BaseLLMProvider):
         self,
         messages: list[dict[str, str]],
     ) -> str:
+        """
+        Generate a response using OpenAI's Chat Completions API.
 
+        Args:
+            messages:
+                A sequence of chat messages formatted according to the
+                OpenAI Chat Completions API specification.
+
+        Returns:
+            The text content of the model's response. Returns an empty
+            string if no content is returned by the API.
+        """
+    
         response = self.client.chat.completions.create(
             model=MODEL_NAME,
             messages=messages,
