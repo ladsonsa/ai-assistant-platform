@@ -28,7 +28,7 @@ class OpenAIProvider(BaseLLMProvider):
 
         Creates an authenticated OpenAI client using the configured API key.
         """
-    
+
         self.client = OpenAI(
             api_key=OPENAI_API_KEY,
         )
@@ -49,7 +49,7 @@ class OpenAIProvider(BaseLLMProvider):
             The text content of the model's response. Returns an empty
             string if no content is returned by the API.
         """
-    
+
         response = self.client.chat.completions.create(
             model=MODEL_NAME,
             messages=messages,

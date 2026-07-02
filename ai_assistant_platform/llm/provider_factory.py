@@ -49,7 +49,7 @@ class ProviderFactory:
             ValueError:
                 If the specified provider is not supported.
         """
-        
+
         provider = cls.PROVIDERS.get(provider_name.lower())
 
         if provider is None:

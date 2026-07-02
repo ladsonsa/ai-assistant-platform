@@ -11,7 +11,7 @@ class OllamaProvider(BaseLLMProvider):
     locally hosted models via Ollama. The current implementation is a
     placeholder and must be completed before production use.
     """
-    
+
     def generate_response(
         self,
         messages: list[dict[str, str]],

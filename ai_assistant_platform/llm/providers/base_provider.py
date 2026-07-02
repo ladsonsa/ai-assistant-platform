@@ -31,5 +31,5 @@ class BaseLLMProvider(ABC):
             NotImplementedError:
                 Raised if a subclass does not implement this method.
         """
-        
+
         raise NotImplementedError
