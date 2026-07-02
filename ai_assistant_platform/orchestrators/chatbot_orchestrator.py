@@ -12,7 +12,19 @@ import re
 class ChatbotOrchestrator:
     """
     Central orchestration layer responsible for coordinating
-    agents and response generation.
+    specialized agents and managing the request processing flow.
+
+    Responsibilities:
+        - Analyze incoming user requests.
+        - Route requests to the appropriate agent.
+        - Extract mathematical operations and operands.
+        - Coordinate interaction between agents.
+        - Return the final response to the caller.
+
+    Limitations:
+        - Does not perform mathematical calculations directly.
+        - Does not generate user-facing responses directly.
+        - Does not communicate with LLM providers.
     """
 
     def __init__(
@@ -20,6 +32,18 @@ class ChatbotOrchestrator:
         mathematical_agent: MathematicalAgent,
         writer_agent: WriterAgent,
     ) -> None:
+        """
+        Initialize orchestrator dependencies.
+
+        Args:
+            mathematical_agent:
+                Specialized agent responsible for mathematical
+                operations.
+
+            writer_agent:
+                Specialized agent responsible for generating
+                user-friendly responses.
+        """
 
         self.mathematical_agent = mathematical_agent
         self.writer_agent = writer_agent
@@ -29,6 +53,29 @@ class ChatbotOrchestrator:
         user_message: str,
         conversation_history: list[dict],
     ) -> str:
+        """
+        Process a user message and coordinate the execution flow.
+
+        The orchestrator determines whether the request should be
+        handled by the mathematical agent or directly by the writer
+        agent.
+
+        Args:
+            user_message:
+                Message received from the user.
+
+            conversation_history:
+                Complete conversation history used to provide
+                context for response generation.
+
+        Returns:
+            Final response generated for the user.
+
+        Raises:
+            ValueError:
+                If the mathematical request contains invalid
+                or unsupported data.
+        """
 
         if self.mathematical_agent.can_handle(user_message):
 
@@ -60,6 +107,20 @@ class ChatbotOrchestrator:
         self,
         user_message: str,
     ) -> tuple[float, float]:
+        """
+        Extract numerical operands from the user message.
+
+        Args:
+            user_message:
+                Original message sent by the user.
+
+        Returns:
+            Tuple containing the two extracted operands.
+
+        Raises:
+            ValueError:
+                If fewer than two numbers are found in the message.
+        """
 
         numbers = re.findall(
             r"-?\d+\.?\d*",
@@ -78,6 +139,27 @@ class ChatbotOrchestrator:
         self,
         user_message: str,
     ) -> str:
+        """
+        Identify the mathematical operation requested by the user.
+
+        Supported operations:
+            - addition
+            - subtraction
+            - multiplication
+            - division
+
+        Args:
+            user_message:
+                Original message sent by the user.
+
+        Returns:
+            Internal operation identifier used by the
+            mathematical agent.
+
+        Raises:
+            ValueError:
+                If the requested operation is not supported.
+        """
 
         message = user_message.lower()
 
