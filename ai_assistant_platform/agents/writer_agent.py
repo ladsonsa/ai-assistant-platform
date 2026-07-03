@@ -1,3 +1,4 @@
+import inspect
 from ai_assistant_platform.llm.llm_service import (
     LLMService,
 )
@@ -23,7 +24,7 @@ class WriterAgent:
             and generating natural language responses.
     """
 
-    WRITER_PROMPT = """
+    WRITER_PROMPT = inspect.cleandoc("""
         You are a specialized Mathematical Communication Agent.
 
         # PRIMARY ROLE
@@ -101,7 +102,7 @@ class WriterAgent:
         Never generate mathematical reasoning or calculations by yourself.
         Your role is to communicate results, not to produce them.
 
-        """
+        """)
 
     def __init__(self) -> None:
         """
