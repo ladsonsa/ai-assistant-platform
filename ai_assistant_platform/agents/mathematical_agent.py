@@ -8,65 +8,26 @@ from ai_assistant_platform.tools.math_operations import (
 
 class MathematicalAgent:
     """
-    A specialized agent responsible for executing mathematical operations.
+    Agent responsible for executing basic mathematical operations.
 
-    This agent determines whether a user request contains a supported
-    mathematical operation and delegates the computation to the
-    appropriate mathematical tool.
+    This class delegates mathematical calculations to the corresponding
+    operation functions, providing a single entry point for arithmetic
+    execution.
 
-    The agent is intentionally limited to operation selection and
-    execution. It does not perform natural language generation,
-    communicate with language models, or format responses for end users.
-
-    Attributes:
-        OPERATIONS (dict[str, Callable[[float, float], float]]):
-            Mapping between operation names and their corresponding
-            mathematical functions.
-
-        KEYWORDS (dict[str, list[str]]):
-            Mapping of supported operations to the keywords used for
-            intent detection in user messages.
+    Supported operations:
+        - addition
+        - subtraction
+        - multiplication
+        - division
     """
 
-    OPERATIONS = {
-        "addition": add,
-        "subtraction": subtract,
-        "multiplication": multiply,
-        "division": divide,
-    }
-
-    KEYWORDS = {
-        "addition": ["add", "+", "plus"],
-        "subtraction": ["subtract", "-", "minus"],
-        "multiplication": ["multiply", "*", "times"],
-        "division": ["divide", "/", "divided by"],
-    }
-
-    def can_handle(
-        self,
-        user_message: str,
-    ) -> bool:
-        """
-        Determine whether the agent can process a user request.
-
-        The method performs a keyword-based search to identify whether
-        the provided message contains a supported mathematical operation.
-
-        Args:
-            user_message: The user's input message.
-
-        Returns:
-            True if the message contains at least one supported
-            mathematical keyword; otherwise, False.
-        """
-
-        message = user_message.lower()
-
-        return any(
-            keyword in message
-            for keywords in self.KEYWORDS.values()
-            for keyword in keywords
-        )
+    def __init__(self):
+        self.operations = {
+            "addition": add,
+            "subtraction": subtract,
+            "multiplication": multiply,
+            "division": divide,
+        }
 
     def execute(
         self,
@@ -75,28 +36,27 @@ class MathematicalAgent:
         number_2: float,
     ) -> float:
         """
-        Execute a supported mathematical operation.
-
-        The requested operation is resolved through the internal
-        operation registry and delegated to the corresponding
-        mathematical function.
+        Execute the requested mathematical operation.
 
         Args:
-            operation: Name of the mathematical operation to execute.
-            number_1: The first operand.
-            number_2: The second operand.
+            operation:
+                Canonical operation name.
+            number_1:
+                First operand.
+            number_2:
+                Second operand.
 
         Returns:
             The result of the mathematical operation.
 
         Raises:
-            ValueError: If the provided operation is not supported.
+            ValueError:
+                If the requested operation is not supported.
         """
 
-        if operation not in self.OPERATIONS:
+        func = self.operations.get(operation)
+
+        if func is None:
             raise ValueError(f"Unsupported operation: {operation}")
 
-        return self.OPERATIONS[operation](
-            number_1,
-            number_2,
-        )
+        return func(number_1, number_2)

@@ -1,4 +1,4 @@
-from openai import OpenAI
+from openai import OpenAI, RateLimitError
 
 from ai_assistant_platform.config.settings import (
     MODEL_NAME,
@@ -50,9 +50,13 @@ class OpenAIProvider(BaseLLMProvider):
             string if no content is returned by the API.
         """
 
-        response = self.client.chat.completions.create(
-            model=MODEL_NAME,
-            messages=messages,
-        )
+        try:
+            response = self.client.chat.completions.create(
+                model=MODEL_NAME,
+                messages=messages,
+            )
 
-        return response.choices[0].message.content or ""
+            return response.choices[0].message.content
+
+        except RateLimitError as exc:
+            raise RuntimeError("OpenAI rate limit exceeded.") from exc

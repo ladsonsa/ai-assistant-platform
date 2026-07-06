@@ -1,162 +1,63 @@
-import inspect
-from ai_assistant_platform.llm.llm_service import (
-    LLMService,
+from ai_assistant_platform.llm.llm_service import LLMService
+
+from ai_assistant_platform.prompts.writer_prompt import (
+    build_writer_prompt,
 )
 
 
 class WriterAgent:
     """
-    A specialized agent responsible for generating user-friendly responses
-    from precomputed mathematical results.
+    Agent responsible for generating natural language responses.
 
-    This agent delegates response generation to an LLM while ensuring that
-    responses are natural, professional, and written in the same language
-    as the user's request. It does not perform calculations or generate
-    mathematical results independently.
-
-    Attributes:
-        WRITER_PROMPT (str):
-            System prompt that defines the agent's behavior, communication
-            style, supported operations, and operational constraints.
-
-        llm_service (LLMService):
-            Service responsible for communicating with the language model
-            and generating natural language responses.
+    This agent formats mathematical results into concise, human-readable
+    sentences by delegating text generation to the configured language
+    model service.
     """
 
-    WRITER_PROMPT = inspect.cleandoc("""
-        You are a specialized Mathematical Communication Agent.
-
-        # PRIMARY ROLE
-
-        Your only responsibility is to transform already calculated mathematical results into friendly, natural, and human-readable responses.
-
-        # SUPPORTED OPERATIONS
-
-        You are strictly limited to the following basic mathematical operations:
-
-        * Addition
-        * Subtraction
-        * Multiplication
-        * Division
-
-        You must only discuss these operations and their results.
-
-        # LANGUAGE RULES
-
-        * Always answer in the same language used by the user.
-        * Support all human languages provided by the user.
-        * Never change the user's language unless explicitly requested.
-
-        # COMMUNICATION STYLE
-
-        * Use a friendly, natural, and professional tone.
-        * Responses should feel human and conversational.
-        * Short and polite expressions are allowed when appropriate.
-        * Examples:
-
-        * "Sure! The result of 2 + 2 is 4."
-        * "Of course! 10 divided by 2 equals 5."
-        * "The result of 7 multiplied by 3 is 21."
-
-        # STRICT RESTRICTIONS
-
-        You are NOT a general assistant.
-
-        You MUST NEVER:
-
-        * Perform calculations yourself.
-        * Invent numbers or mathematical results.
-        * Discuss topics unrelated to the four supported operations.
-        * Answer questions about:
-
-        * News
-        * Politics
-        * Religion
-        * Crimes
-        * Illegal activities
-        * Violence
-        * Tragedies
-        * Health
-        * Programming
-        * Science
-        * History
-        * Geography
-        * Entertainment
-        * Relationships
-        * Opinions
-        * Current events
-        * Any subject outside basic arithmetic operations.
-
-        # OUT-OF-SCOPE REQUESTS
-
-        If the request is unrelated to addition, subtraction, multiplication, or division, refuse the request immediately.
-
-        Use the following response pattern in the user's language:
-
-        "I can only assist with basic mathematical operations such as addition, subtraction, multiplication, and division."
-
-        # FINAL RULE
-
-        Only use the mathematical information provided by specialized agents or tools.
-        Never generate mathematical reasoning or calculations by yourself.
-        Your role is to communicate results, not to produce them.
-
-        """)
-
-    def __init__(self) -> None:
-        """
-        Initialize the writer agent and its dependencies.
-
-        Creates an instance of the language model service used to
-        generate natural language responses.
-        """
-
-        self.llm_service = LLMService()
+    def __init__(
+        self,
+        llm_service: LLMService,
+    ):
+        self.llm_service = llm_service
 
     def generate_response(
         self,
-        user_message: str,
-        context: object,
+        result: float,
+        language: str,
     ) -> str:
         """
-        Generate a natural language response based on a precomputed result.
+        Generate a natural language response for a mathematical result.
 
-        The method combines the original user request with contextual
-        information produced by another specialized agent and delegates
-        response generation to the configured language model.
+        The response is produced in the requested language using the
+        configured language model.
 
         Args:
-            user_message:
-                The original message submitted by the user.
-
-            context:
-                Structured or textual information produced by another
-                agent or by the orchestrator. This data is used as the
-                factual basis for the generated response.
+            result:
+                Mathematical result to be presented.
+            language:
+                ISO 639-1 language code indicating the language of the
+                response (for example: "pt", "en", "es").
 
         Returns:
-            A natural, user-friendly response generated by the language
-            model in the same language as the user's request.
+            A concise natural language sentence containing the formatted
+            mathematical result.
         """
 
-        prompt = f"""
-            The user asked:
+        formatted_result = self._format(result)
 
-            {user_message}
-
-            The result generated by another specialized agent was:
-
-            {context}
-
-            Generate a friendly and natural response for the user.
-            """
+        prompt = build_writer_prompt(
+            result=formatted_result,
+            language=language,
+        )
 
         return self.llm_service.generate_response(
             messages=[
                 {
                     "role": "system",
-                    "content": self.WRITER_PROMPT,
+                    "content": (
+                        "You generate short mathematical answers "
+                        "in the requested language."
+                    ),
                 },
                 {
                     "role": "user",
@@ -164,3 +65,26 @@ class WriterAgent:
                 },
             ]
         )
+
+    def _format(
+        self,
+        value: float | int,
+    ) -> str:
+        """
+        Format a numeric value for presentation.
+
+        Integer-valued floats are converted to integers to avoid
+        unnecessary decimal places (for example, ``5.0`` becomes ``5``).
+
+        Args:
+            value:
+                Numeric value to format.
+
+        Returns:
+            String representation of the formatted value.
+        """
+
+        if isinstance(value, float) and value.is_integer():
+            return str(int(value))
+
+        return str(value)

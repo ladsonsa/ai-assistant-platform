@@ -3,53 +3,60 @@ import streamlit as st
 
 def initialize_chat_memory() -> None:
     """
-    Initialize the chat memory in Streamlit session state.
+    Initialize the chat history stored in the Streamlit session state.
 
-    This function ensures that the conversation history is available
-    in `st.session_state`. If it does not exist, it creates an empty list.
+    This function creates the ``messages`` collection if it does not
+    already exist, ensuring that the conversation history is available
+    throughout the user's session.
     """
 
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
 
-def add_messages(
+def add_message(
     role: str,
     content: str,
+    metadata: dict | None = None,
 ) -> None:
     """
-    Add a message to the chat history.
+    Add a message to the conversation history.
 
     Args:
         role:
-            The role of the message sender (e.g., "user", "assistant").
+            Role of the message author (e.g. ``"user"`` or
+            ``"assistant"``).
 
         content:
-            The textual content of the message to store.
+            Message content to store.
 
-    Returns:
-        None
+        metadata:
+            Optional metadata associated with the message, such as
+            mathematical results or operation details. Defaults to an
+            empty dictionary.
     """
 
     st.session_state.messages.append(
         {
             "role": role,
             "content": content,
+            "metadata": metadata or {},
         }
     )
 
 
 def get_chat_history() -> list[dict]:
     """
-    Retrieve the full chat history stored in the session state.
+    Retrieve the current conversation history.
 
     Returns:
-        A list of message dictionaries containing the conversation history.
-        Each message has the format:
-        {
-            "role": str,
-            "content": str
-        }
+        A list of message dictionaries stored in the Streamlit session
+        state. Each message contains the following fields:
+
+        - ``role``: Message author.
+        - ``content``: Message text.
+        - ``metadata``: Optional contextual information associated with
+          the message.
     """
 
     return st.session_state.messages

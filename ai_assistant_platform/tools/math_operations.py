@@ -12,7 +12,7 @@ def add(
     Returns:
         Sum of both operands.
     """
-
+    print("+")
     return number_1 + number_2
 
 
@@ -30,7 +30,7 @@ def subtract(
     Returns:
         Difference between operands.
     """
-
+    print("-")
     return number_1 - number_2
 
 
@@ -48,7 +48,7 @@ def multiply(
     Returns:
         Product of both operands.
     """
-
+    print("*")
     return number_1 * number_2
 
 
@@ -73,5 +73,5 @@ def divide(
 
     if number_2 == 0:
         raise ValueError("Division by zero is not allowed.")
-
+    print("/")
     return number_1 / number_2
