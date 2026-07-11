@@ -1,4 +1,7 @@
+# app.py
+
 import streamlit as st
+
 
 from ai_assistant_platform.memory.chat_memory import (
     add_message,
@@ -9,65 +12,79 @@ from ai_assistant_platform.orchestrators.chatbot_orchestrator import (
     ChatbotOrchestrator,
 )
 
-
-def get_orchestrator() -> ChatbotOrchestrator:
-    """
-    Singleton simples via Streamlit session_state
-    Evita recriação a cada input
-    """
-
-    if "orchestrator" not in st.session_state:
-
-        st.session_state.orchestrator = ChatbotOrchestrator()
-
-    return st.session_state.orchestrator
+from chatbot.llm_service import LLMService
 
 
 def main() -> None:
+    """
+    Streamlit application entry point.
+    """
+
+    st.set_page_config(
+        page_title="AI Math Assistant",
+        page_icon="🧮",
+    )
+
+    st.title("🧮 AI Math Assistant")
 
     initialize_chat_memory()
 
-    st.title("AI Assistant Platform")
+    llm_service = LLMService()
 
-    # render chat history
+    orchestrator = ChatbotOrchestrator()
+
     for message in get_chat_history():
-        with st.chat_message(message["role"]):
-            st.write(message["content"])
 
-    user_input = st.chat_input("Type your message")
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+    user_input = st.chat_input("Type your mathematical question...")
 
     if not user_input:
         return
 
-    # 1. salva user message
-    add_message(role="user", content=user_input)
-
-    orchestrator = get_orchestrator()
-
-    # 2. chama pipeline completo (orchestrator controla tudo)
-    with st.spinner("Thinking..."):
-
-        try:
-            result = orchestrator.process_message(
-                user_message=user_input,
-                conversation_history=get_chat_history(),
-            )
-
-        except RuntimeError as exc:
-
-            result = {
-                "response": str(exc),
-                "metadata": {},
-            }
-
-    # 3. salva resposta
     add_message(
-        role="assistant",
-        content=result["response"],
-        metadata=result.get("metadata", {}),
+        role="user",
+        content=user_input,
     )
 
-    st.rerun()
+    with st.chat_message("user"):
+        st.markdown(user_input)
+
+    try:
+
+        result = orchestrator.process_message(
+            user_message=user_input,
+            conversation_history=get_chat_history(),
+        )
+
+        response = result["response"]
+
+        metadata = result.get(
+            "metadata",
+            {},
+        )
+
+    except RuntimeError as exc:
+
+        response = str(exc)
+
+        metadata = {}
+
+    except Exception:
+
+        response = "An unexpected error occurred while processing " "your request."
+
+        metadata = {}
+
+    add_message(
+        role="assistant",
+        content=response,
+        metadata=metadata,
+    )
+
+    with st.chat_message("assistant"):
+        st.markdown(response)
 
 
 if __name__ == "__main__":

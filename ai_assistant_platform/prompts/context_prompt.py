@@ -1,10 +1,4 @@
-"""
-Prompt builders used by the ContextResolver.
-
-This module centralizes prompt templates responsible for extracting
-structured mathematical intent from user messages, keeping prompt
-engineering separated from application logic.
-"""
+# ai_assistant_platform/prompts/context_prompt.py
 
 
 def build_context_prompt(
@@ -12,63 +6,109 @@ def build_context_prompt(
     last_math_result: float | None,
 ) -> str:
     """
-    Build the prompt used to extract mathematical intent from a user message.
+    Builds the prompt used by the ContextResolver.
 
-    The generated prompt instructs the language model to determine whether
-    the input represents a supported mathematical request and, when
-    applicable, return a structured JSON object describing the operation,
-    operands, conversation context usage, and detected language.
-
-    Args:
-        user_message:
-            Raw message submitted by the user.
-
-        last_math_result:
-            Most recent mathematical result available in the conversation.
-            Used when the user refers to a previous calculation.
-
-    Returns:
-        A formatted prompt ready to be sent to the configured language
-        model.
+    The model must determine whether the user is requesting a mathematical
+    operation, detect the language of the current message and convert the
+    request into a canonical mathematical expression.
     """
 
     return f"""
-You are a mathematical intent parser.
+You are an intent parser for a BASIC MATHEMATICS assistant.
 
+YOUR JOB
+--------
 Return ONLY valid JSON.
 
-Rules:
-- Detect if the message is mathematical.
-- Detect the language of the CURRENT user message.
-- Support any language.
-- Use ISO 639-1 language codes.
-- Ignore previous conversation language.
-- If language detection fails use "en".
+Never explain.
 
-Allowed operations:
+Never use markdown.
+
+Never add extra keys.
+
+SUPPORTED OPERATIONS
+--------------------
 - addition
 - subtraction
 - multiplication
 - division
+- parentheses
 
-User message:
+SUPPORTED EXPRESSIONS
+---------------------
+2 + 2
+
+10 + 5 * 3
+
+(8 / 2 + 3) * 4
+
+((18 + 6) / 3) * 4 - 5
+
+USER MESSAGE
+------------
 {user_message}
 
-Previous mathematical result:
+PREVIOUS RESULT
+---------------
 {last_math_result}
 
-If mathematical:
+RULES
+-----
+
+1.
+If the message is mathematical:
+
+Return
 
 {{
     "is_math": true,
-    "operation": "addition",
-    "left_operand": 5,
-    "right_operand": 4,
+    "expression": "((18+6)/3)*4-5",
     "use_previous_result": false,
     "language": "pt"
 }}
 
-If not mathematical:
+2.
+If the user refers to the previous answer, rewrite the expression.
+
+Example
+
+Previous result = 9
+
+User:
+Multiply that by 8
+
+Return
+
+{{
+    "is_math": true,
+    "expression": "9*8",
+    "use_previous_result": true,
+    "language": "en"
+}}
+
+3.
+Detect ONLY the language of the CURRENT message.
+
+Return ISO-639-1.
+
+Examples
+
+pt
+en
+es
+fr
+de
+ja
+it
+ko
+zh
+ru
+ar
+
+4.
+Reject anything outside basic mathematics.
+
+Return
 
 {{
     "is_math": false,

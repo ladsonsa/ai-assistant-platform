@@ -1,42 +1,30 @@
+# ai_assistant_platform/core/math_context.py
+
 from dataclasses import dataclass
 
 
-@dataclass
+@dataclass(slots=True)
 class MathContext:
     """
-    Represents a parsed mathematical request extracted from a user message.
-
-    This data structure encapsulates all information required by the
-    orchestrator and mathematical agent to execute a supported operation.
+    Represents a validated mathematical request extracted from the user's
+    message.
 
     Attributes:
-        operation:
-            Canonical mathematical operation to execute
-            (e.g. ``addition``, ``subtraction``, ``multiplication``,
-            ``division``).
-
-        left_operand:
-            Left operand of the mathematical operation.
-
-        right_operand:
-            Right operand of the mathematical operation.
+        expression:
+            Canonical mathematical expression to be evaluated.
 
         use_previous_result:
-            Indicates whether the previous mathematical result should be
-            used as the left operand instead of ``left_operand``.
+            Indicates whether the previous conversation result should be used
+            when evaluating the expression.
 
         previous_result:
-            Last mathematical result available in the conversation.
-            ``None`` when no previous result exists.
+            Previous mathematical result stored in the conversation.
 
         language:
-            ISO 639-1 language code detected from the current user
-            message (e.g. ``pt``, ``en``, ``es``).
+            ISO 639-1 language code detected from the current user message.
     """
 
-    operation: str
-    left_operand: float
-    right_operand: float
+    expression: str
     use_previous_result: bool
     previous_result: float | None
     language: str

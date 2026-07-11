@@ -1,4 +1,6 @@
-from ai_assistant_platform.llm.llm_service import LLMService
+from ai_assistant_platform.llm.llm_service import (
+    LLMService,
+)
 
 from ai_assistant_platform.prompts.writer_prompt import (
     build_writer_prompt,
@@ -7,17 +9,13 @@ from ai_assistant_platform.prompts.writer_prompt import (
 
 class WriterAgent:
     """
-    Agent responsible for generating natural language responses.
-
-    This agent formats mathematical results into concise, human-readable
-    sentences by delegating text generation to the configured language
-    model service.
+    Generates the final response presented to the user.
     """
 
     def __init__(
         self,
         llm_service: LLMService,
-    ):
+    ) -> None:
         self.llm_service = llm_service
 
     def generate_response(
@@ -28,25 +26,19 @@ class WriterAgent:
         """
         Generate a natural language response for a mathematical result.
 
-        The response is produced in the requested language using the
-        configured language model.
-
         Args:
             result:
-                Mathematical result to be presented.
+                Calculated mathematical result.
+
             language:
-                ISO 639-1 language code indicating the language of the
-                response (for example: "pt", "en", "es").
+                ISO 639-1 language code detected by ContextResolver.
 
         Returns:
-            A concise natural language sentence containing the formatted
-            mathematical result.
+            Natural response in the detected language.
         """
 
-        formatted_result = self._format(result)
-
         prompt = build_writer_prompt(
-            result=formatted_result,
+            result=self._format_result(result),
             language=language,
         )
 
@@ -54,37 +46,70 @@ class WriterAgent:
             messages=[
                 {
                     "role": "system",
-                    "content": (
-                        "You generate short mathematical answers "
-                        "in the requested language."
-                    ),
+                    "content": ("You are a multilingual mathematical assistant."),
                 },
                 {
                     "role": "user",
                     "content": prompt,
                 },
-            ]
+            ],
         )
 
-    def _format(
+    def generate_error_response(
         self,
-        value: float | int,
+        user_message: str,
+        error: str,
     ) -> str:
         """
-        Format a numeric value for presentation.
-
-        Integer-valued floats are converted to integers to avoid
-        unnecessary decimal places (for example, ``5.0`` becomes ``5``).
+        Generate a localized error message.
 
         Args:
-            value:
-                Numeric value to format.
+            user_message:
+                Original user message.
+
+            error:
+                Internal error.
 
         Returns:
-            String representation of the formatted value.
+            Friendly error message.
         """
 
-        if isinstance(value, float) and value.is_integer():
+        prompt = f"""
+User language:
+{user_message}
+
+Internal error:
+{error}
+
+Rules:
+- Respond in the same language as the user.
+- Be concise.
+- Never expose internal implementation details.
+- Return only the final answer.
+"""
+
+        return self.llm_service.generate_response(
+            messages=[
+                {
+                    "role": "system",
+                    "content": ("You generate multilingual error messages."),
+                },
+                {
+                    "role": "user",
+                    "content": prompt,
+                },
+            ],
+        )
+
+    def _format_result(
+        self,
+        value: float,
+    ) -> str:
+        """
+        Format numbers for display.
+        """
+
+        if value.is_integer():
             return str(int(value))
 
         return str(value)
