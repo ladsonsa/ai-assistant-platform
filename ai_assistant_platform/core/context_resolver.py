@@ -1,5 +1,3 @@
-# ai_assistant_platform/core/context_resolver.py
-
 import json
 import re
 
@@ -16,13 +14,27 @@ from ai_assistant_platform.prompts.context_prompt import (
 
 class ContextResolver:
     """
-    Resolves the user's message into a MathContext.
+    Resolves user messages into structured mathematical context.
     """
+
+    SUPPORTED_LANGUAGES = {
+        "pt",
+        "en",
+        "es",
+        "fr",
+        "de",
+        "ja",
+        "it",
+        "ru",
+        "zh",
+        "ko",
+        "ar",
+    }
 
     def __init__(
         self,
         llm_service: LLMService,
-    ):
+    ) -> None:
         self.llm_service = llm_service
 
     def resolve(
@@ -31,7 +43,24 @@ class ContextResolver:
         last_math_result: float | None,
     ) -> MathContext | None:
 
-        if not self._is_valid_candidate(user_message):
+        expression = self._extract_expression(
+            user_message,
+        )
+
+        if expression is not None:
+
+            return MathContext(
+                expression=expression,
+                use_previous_result="$result" in expression,
+                previous_result=last_math_result,
+                language=self._detect_language(
+                    user_message,
+                ),
+            )
+
+        if not self._is_math_candidate(
+            user_message,
+        ):
             return None
 
         data = self._call_llm(
@@ -42,10 +71,20 @@ class ContextResolver:
         if not data:
             return None
 
-        if not data.get("is_math"):
+        if not data.get(
+            "is_math",
+            False,
+        ):
             return None
 
-        expression = data.get("expression")
+        expression = data.get(
+            "expression",
+        )
+
+        if not expression:
+            return None
+
+        expression = expression.strip()
 
         if not expression:
             return None
@@ -62,21 +101,64 @@ class ContextResolver:
             language=self._normalize_language(
                 data.get(
                     "language",
-                    "en",
                 )
             ),
         )
 
+    def _extract_expression(
+        self,
+        text: str,
+    ) -> str | None:
+        """
+        Extract mathematical expressions directly from the message.
+        """
+
+        cleaned = text.lower()
+
+        for prefix in (
+            "quanto é",
+            "calcule",
+            "calcule:",
+            "resolve",
+            "resolva",
+        ):
+            cleaned = cleaned.replace(
+                prefix,
+                "",
+            )
+
+        if "$result" in cleaned:
+            cleaned = cleaned.replace(
+                "resultado anterior",
+                "$result",
+            ).replace(
+                "resultado",
+                "$result",
+            )
+
+        match = re.search(
+            r"[\d\.\+\-\*\/\(\)\s\$a-z_]+",
+            cleaned,
+        )
+
+        if not match:
+            return None
+
+        expression = match.group().strip()
+
+        if (
+            not re.search(r"\d", expression)
+            and "$result" not in expression
+        ):
+            return None
+
+        return expression
+
     def _call_llm(
         self,
         user_message: str,
-        last_math_result: float | None,
+        last_math_result: float |None,
     ) -> dict | None:
-
-        prompt = build_context_prompt(
-            user_message=user_message,
-            last_math_result=last_math_result,
-        )
 
         response = self.llm_service.generate_response(
             messages=[
@@ -86,35 +168,127 @@ class ContextResolver:
                 },
                 {
                     "role": "user",
-                    "content": prompt,
+                    "content": build_context_prompt(
+                        user_message=user_message,
+                        last_math_result=last_math_result,
+                    ),
                 },
-            ],
+            ]
         )
 
         try:
-            return json.loads(response)
+            return json.loads(
+                response["content"],
+            )
 
-        except json.JSONDecodeError:
+        except (
+            json.JSONDecodeError,
+            KeyError,
+            TypeError,
+        ):
             return None
+
+    def _is_math_candidate(
+        self,
+        text: str,
+    ) -> bool:
+
+        lowered = text.lower()
+
+        if re.search(
+            r"[\+\-\*/()]",
+            lowered,
+        ):
+            return True
+
+        math_words = (
+            "quanto",
+            "calcule",
+            "calcular",
+            "soma",
+            "somar",
+            "mais",
+            "menos",
+            "vezes",
+            "multiplicar",
+            "multiplique",
+            "dividir",
+            "divida",
+            "divide",
+            "plus",
+            "minus",
+            "times",
+            "multiply",
+            "divide",
+            "resultado",
+            "anterior",
+            "caixas",
+            "itens",
+            "perdi",
+        )
+
+        return any(
+            word in lowered
+            for word in math_words
+        )
+
+    def _detect_language(
+        self,
+        text: str,
+    ) -> str:
+
+        lowered = text.lower()
+
+        if any(
+            word in lowered
+            for word in (
+                "quanto",
+                "calcule",
+                "resultado",
+                "mais",
+                "menos",
+                "vezes",
+            )
+        ):
+            return "pt"
+
+        if any(
+            word in lowered
+            for word in (
+                "what",
+                "calculate",
+                "plus",
+                "minus",
+                "times",
+            )
+        ):
+            return "en"
+
+        if any(
+            word in lowered
+            for word in (
+                "cuanto",
+                "ahora",
+                "resultado",
+                "más",
+                "menos",
+            )
+        ):
+            return "es"
+
+        return "en"
 
     def _normalize_language(
         self,
-        language: str,
+        language: str | None,
     ) -> str:
 
         if not language:
             return "en"
 
-        return language.lower()[:2]
+        language = language.lower()
 
-    def _is_valid_candidate(
-        self,
-        text: str,
-    ) -> bool:
+        if language in self.SUPPORTED_LANGUAGES:
+            return language
 
-        return bool(
-            re.search(
-                r"\d|[\+\-\*/()]|mais|menos|vezes|divid|som|sub|mult|calc|equa|express|plus|minus|times|divide",
-                text.lower(),
-            )
-        )
+        return language[:2]

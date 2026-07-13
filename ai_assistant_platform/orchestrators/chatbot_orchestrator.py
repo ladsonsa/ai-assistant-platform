@@ -1,14 +1,15 @@
-# ai_assistant_platform/orchestrators/chatbot_orchestrator.py
-
 from ai_assistant_platform.agents.mathematical_agent import (
     MathematicalAgent,
 )
+
 from ai_assistant_platform.agents.writer_agent import (
     WriterAgent,
 )
+
 from ai_assistant_platform.core.context_resolver import (
     ContextResolver,
 )
+
 from ai_assistant_platform.llm.llm_service import (
     LLMService,
 )
@@ -16,23 +17,31 @@ from ai_assistant_platform.llm.llm_service import (
 
 class ChatbotOrchestrator:
     """
-    Coordinates the complete chatbot execution flow.
+    Coordinates the complete chatbot execution pipeline.
 
-    Pipeline:
-        User Message
+    Flow:
+
+        User Input
             ↓
-        ContextResolver
+        Context Resolver
             ↓
-        MathematicalAgent
+        Mathematical Agent
             ↓
-        WriterAgent
+        Writer Agent
             ↓
         Response
     """
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        llm_service: LLMService | None = None,
+    ) -> None:
 
-        self.llm_service = LLMService()
+        self.llm_service = (
+            llm_service
+            if llm_service is not None
+            else LLMService()
+        )
 
         self.context_resolver = ContextResolver(
             llm_service=self.llm_service,
@@ -44,37 +53,46 @@ class ChatbotOrchestrator:
             llm_service=self.llm_service,
         )
 
+
     def process_message(
         self,
         user_message: str,
         conversation_history: list[dict],
     ) -> dict:
-        """
-        Executes the chatbot pipeline.
-        """
 
         last_math_result = self._extract_last_math_result(
             conversation_history,
         )
+
 
         math_context = self.context_resolver.resolve(
             user_message=user_message,
             last_math_result=last_math_result,
         )
 
+
         if math_context is None:
+
             return {
                 "response": self._refusal_message(),
                 "metadata": {},
+                "usage": {},
             }
+
 
         expression = math_context.expression
 
-        if math_context.use_previous_result and last_math_result is not None:
+
+        if (
+            math_context.use_previous_result
+            and last_math_result is not None
+        ):
+
             expression = expression.replace(
                 "$result",
                 str(last_math_result),
             )
+
 
         try:
 
@@ -82,48 +100,77 @@ class ChatbotOrchestrator:
                 expression=expression,
             )
 
+
         except ZeroDivisionError:
 
-            return {
-                "response": self.writer_agent.generate_error_response(
+            error_response = (
+                self.writer_agent.generate_error_response(
                     user_message=user_message,
                     error="Division by zero.",
-                ),
+                )
+            )
+
+            return {
+                "response": error_response["content"],
                 "metadata": {},
+                "usage": error_response.get(
+                    "usage",
+                    {},
+                ),
             }
+
 
         except ValueError as exc:
 
-            return {
-                "response": self.writer_agent.generate_error_response(
+            error_response = (
+                self.writer_agent.generate_error_response(
                     user_message=user_message,
                     error=str(exc),
-                ),
+                )
+            )
+
+            return {
+                "response": error_response["content"],
                 "metadata": {},
+                "usage": error_response.get(
+                    "usage",
+                    {},
+                ),
             }
 
-        response = self.writer_agent.generate_response(
-            result=result,
-            language=math_context.language,
+
+        response = (
+            self.writer_agent.generate_response(
+                result=result,
+                language=math_context.language,
+            )
         )
 
+
         return {
-            "response": response,
+            "response": response["content"],
             "metadata": {
                 "math_result": result,
                 "expression": expression,
+                "language": math_context.language,
             },
+            "usage": response.get(
+                "usage",
+                {},
+            ),
         }
+
+
 
     def _extract_last_math_result(
         self,
         conversation_history: list[dict],
     ) -> float | None:
-        """
-        Retrieves the last mathematical result stored in the conversation.
-        """
 
-        for message in reversed(conversation_history):
+
+        for message in reversed(
+            conversation_history,
+        ):
 
             metadata = message.get(
                 "metadata",
@@ -131,18 +178,20 @@ class ChatbotOrchestrator:
             )
 
             if "math_result" in metadata:
+
                 return metadata["math_result"]
 
+
         return None
+
+
 
     def _refusal_message(
         self,
     ) -> str:
-        """
-        Default message for requests outside the chatbot scope.
-        """
 
         return (
-            "Posso ajudar apenas com matemática básica, incluindo "
-            "operações, expressões com parênteses e problemas simples."
+            "Posso ajudar apenas com matemática básica, "
+            "incluindo operações, expressões com parênteses "
+            "e problemas matemáticos simples."
         )

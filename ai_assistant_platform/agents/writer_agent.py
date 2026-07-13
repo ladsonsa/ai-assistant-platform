@@ -1,7 +1,6 @@
 from ai_assistant_platform.llm.llm_service import (
     LLMService,
 )
-
 from ai_assistant_platform.prompts.writer_prompt import (
     build_writer_prompt,
 )
@@ -22,23 +21,15 @@ class WriterAgent:
         self,
         result: float,
         language: str,
-    ) -> str:
+    ) -> dict:
         """
-        Generate a natural language response for a mathematical result.
-
-        Args:
-            result:
-                Calculated mathematical result.
-
-            language:
-                ISO 639-1 language code detected by ContextResolver.
-
-        Returns:
-            Natural response in the detected language.
+        Generate a localized response for a mathematical result.
         """
 
         prompt = build_writer_prompt(
-            result=self._format_result(result),
+            result=self._format_result(
+                result,
+            ),
             language=language,
         )
 
@@ -46,7 +37,9 @@ class WriterAgent:
             messages=[
                 {
                     "role": "system",
-                    "content": ("You are a multilingual mathematical assistant."),
+                    "content": (
+                        "You are a multilingual mathematical assistant."
+                    ),
                 },
                 {
                     "role": "user",
@@ -59,32 +52,23 @@ class WriterAgent:
         self,
         user_message: str,
         error: str,
-    ) -> str:
+    ) -> dict:
         """
         Generate a localized error message.
-
-        Args:
-            user_message:
-                Original user message.
-
-            error:
-                Internal error.
-
-        Returns:
-            Friendly error message.
         """
 
         prompt = f"""
-User language:
+User message:
 {user_message}
 
 Internal error:
 {error}
 
 Rules:
-- Respond in the same language as the user.
+- Detect the user's language.
+- Reply in the same language.
 - Be concise.
-- Never expose internal implementation details.
+- Never expose implementation details.
 - Return only the final answer.
 """
 
@@ -92,7 +76,9 @@ Rules:
             messages=[
                 {
                     "role": "system",
-                    "content": ("You generate multilingual error messages."),
+                    "content": (
+                        "You generate multilingual mathematical error messages."
+                    ),
                 },
                 {
                     "role": "user",
@@ -106,10 +92,12 @@ Rules:
         value: float,
     ) -> str:
         """
-        Format numbers for display.
+        Format a numerical result for presentation.
         """
 
-        if value.is_integer():
-            return str(int(value))
+        if float(value).is_integer():
+            return str(
+                int(value),
+            )
 
         return str(value)

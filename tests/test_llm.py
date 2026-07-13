@@ -1,7 +1,7 @@
 import unittest
-from chatbot.provider_factory import ProviderFactory
-from chatbot.providers.gemini_provider import GeminiProvider
-from chatbot.llm_service import LLMService
+from ai_assistant_platform.llm.provider_factory import ProviderFactory
+from ai_assistant_platform.llm.providers.providers.gemini_provider import GeminiProvider
+from ai_assistant_platform.llm.llm_service import LLMService
 
 
 class TestLLM(unittest.TestCase):

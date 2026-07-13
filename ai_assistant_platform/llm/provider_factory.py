@@ -1,17 +1,78 @@
-from chatbot.providers.openai_provider import OpenAIProvider
-from chatbot.providers.ollama_provider import OllamaProvider
-from chatbot.providers.gemini_provider import GeminiProvider
+from importlib import import_module
 
 
 class ProviderFactory:
-    @staticmethod
-    def get_provider(provider_name: str):
+    """
+    Factory responsible for creating language model providers.
+    """
+
+    _PROVIDERS = {
+        "openai": (
+            "ai_assistant_platform.llm.providers.openai_provider",
+            "OpenAIProvider",
+        ),
+        "gemini": (
+            "ai_assistant_platform.llm.providers.gemini_provider",
+            "GeminiProvider",
+        ),
+        "ollama": (
+            "ai_assistant_platform.llm.providers.ollama_provider",
+            "OllamaProvider",
+        ),
+    }
+
+    @classmethod
+    def get_provider(
+        cls,
+        provider_name: str,
+    ):
+        """
+        Create and return a provider instance.
+        """
+
         provider_name = provider_name.lower()
-        if provider_name == "openai":
-            return OpenAIProvider()
-        elif provider_name == "ollama":
-            return OllamaProvider()
-        elif provider_name == "gemini":
-            return GeminiProvider()
-        else:
-            raise ValueError(f"Provider '{provider_name}' não suportado.")
+
+        provider_info = cls._PROVIDERS.get(
+            provider_name,
+        )
+
+        if provider_info is None:
+            raise ValueError(
+                f"Unsupported provider: {provider_name}"
+            )
+
+        module_name, class_name = provider_info
+
+        try:
+
+            module = import_module(
+                module_name,
+            )
+
+            provider_class = getattr(
+                module,
+                class_name,
+            )
+
+            return provider_class()
+
+        except ModuleNotFoundError as exc:
+
+            raise RuntimeError(
+                f"The '{provider_name}' provider is unavailable because "
+                f"the required package '{exc.name}' is not installed."
+            ) from exc
+
+        except AttributeError as exc:
+
+            raise RuntimeError(
+                f"The provider class '{class_name}' was not found in "
+                f"module '{module_name}'."
+            ) from exc
+
+        except Exception as exc:
+
+            raise RuntimeError(
+                f"Failed to initialize provider "
+                f"'{provider_name}': {exc}"
+            ) from exc

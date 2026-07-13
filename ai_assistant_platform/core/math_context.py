@@ -6,25 +6,17 @@ from dataclasses import dataclass
 @dataclass(slots=True)
 class MathContext:
     """
-    Represents a validated mathematical request extracted from the user's
-    message.
+    Stores the structured mathematical information extracted from a user
+    request.
 
-    Attributes:
-        expression:
-            Canonical mathematical expression to be evaluated.
-
-        use_previous_result:
-            Indicates whether the previous conversation result should be used
-            when evaluating the expression.
-
-        previous_result:
-            Previous mathematical result stored in the conversation.
-
-        language:
-            ISO 639-1 language code detected from the current user message.
+    This object is produced by the ContextResolver and consumed by the
+    ChatbotOrchestrator to execute mathematical operations.
     """
 
     expression: str
-    use_previous_result: bool
-    previous_result: float | None
-    language: str
+
+    use_previous_result: bool = False
+
+    previous_result: float | None = None
+
+    language: str = "en"

@@ -3,6 +3,7 @@
 import ast
 import operator
 
+
 _OPERATORS = {
     ast.Add: operator.add,
     ast.Sub: operator.sub,
@@ -17,25 +18,29 @@ def evaluate_expression(
     expression: str,
 ) -> float:
     """
-    Safely evaluates a basic mathematical expression.
+    Safely evaluate a mathematical expression.
 
     Supported:
         - Parentheses
-        - + - * /
+        - +, -, *, /
         - Unary + and -
 
     Raises:
         ValueError:
-            Invalid expression.
+            If the expression contains unsupported syntax.
 
         ZeroDivisionError:
-            Division by zero.
+            If division by zero occurs.
     """
 
-    tree = ast.parse(
-        expression,
-        mode="eval",
-    )
+    try:
+        tree = ast.parse(
+            expression,
+            mode="eval",
+        )
+
+    except SyntaxError as exc:
+        raise ValueError("Invalid mathematical expression.") from exc
 
     return float(
         _evaluate_node(
@@ -45,30 +50,24 @@ def evaluate_expression(
 
 
 def _evaluate_node(
-    node,
-):
+    node: ast.AST,
+) -> float:
 
     if isinstance(
         node,
         ast.Constant,
     ):
 
-        if isinstance(
+        if not isinstance(
             node.value,
             (
                 int,
                 float,
             ),
         ):
-            return node.value
+            raise ValueError("Only numeric constants are allowed.")
 
-        raise ValueError("Invalid constant.")
-
-    if isinstance(
-        node,
-        ast.Num,
-    ):
-        return node.n
+        return float(node.value)
 
     if isinstance(
         node,
@@ -78,7 +77,7 @@ def _evaluate_node(
         operator_type = type(node.op)
 
         if operator_type not in _OPERATORS:
-            raise ValueError("Unsupported operator.")
+            raise ValueError("Unsupported unary operator.")
 
         return _OPERATORS[operator_type](
             _evaluate_node(
@@ -104,7 +103,10 @@ def _evaluate_node(
             node.right,
         )
 
-        if operator_type is ast.Div and right == 0:
+        if (
+            operator_type is ast.Div
+            and right == 0
+        ):
             raise ZeroDivisionError("Division by zero.")
 
         return _OPERATORS[operator_type](
@@ -112,4 +114,6 @@ def _evaluate_node(
             right,
         )
 
-    raise ValueError("Invalid mathematical expression.")
+    raise ValueError(
+        "Invalid mathematical expression."
+    )

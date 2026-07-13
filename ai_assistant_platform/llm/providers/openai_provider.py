@@ -1,10 +1,17 @@
-from openai import OpenAI, RateLimitError
-
-from ai_assistant_platform.config.settings import (
-    MODEL_NAME,
-    OPENAI_API_KEY,
+from openai import (
+    OpenAI,
+    RateLimitError,
 )
 
+from ai_assistant_platform.config.settings import (
+    FREQUENCY_PENALTY,
+    MAX_TOKENS,
+    OPENAI_API_KEY,
+    OPENAI_MODEL,
+    PRESENCE_PENALTY,
+    TEMPERATURE,
+    TOP_P,
+)
 from ai_assistant_platform.llm.providers.base_provider import (
     BaseLLMProvider,
 )
@@ -12,22 +19,12 @@ from ai_assistant_platform.llm.providers.base_provider import (
 
 class OpenAIProvider(BaseLLMProvider):
     """
-    Language model provider for OpenAI's Chat Completions API.
-
-    This class implements the BaseLLMProvider interface using OpenAI's
-    SDK to generate responses from chat-based language models.
-
-    Attributes:
-        client (OpenAI):
-            Authenticated OpenAI client used to communicate with the API.
+    OpenAI implementation of the BaseLLMProvider interface.
     """
 
-    def __init__(self) -> None:
-        """
-        Initialize the OpenAI provider.
+    model_name = OPENAI_MODEL
 
-        Creates an authenticated OpenAI client using the configured API key.
-        """
+    def __init__(self) -> None:
 
         self.client = OpenAI(
             api_key=OPENAI_API_KEY,
@@ -36,27 +33,60 @@ class OpenAIProvider(BaseLLMProvider):
     def generate_response(
         self,
         messages: list[dict[str, str]],
-    ) -> str:
+    ) -> dict:
         """
-        Generate a response using OpenAI's Chat Completions API.
-
-        Args:
-            messages:
-                A sequence of chat messages formatted according to the
-                OpenAI Chat Completions API specification.
-
-        Returns:
-            The text content of the model's response. Returns an empty
-            string if no content is returned by the API.
+        Generate a response using the OpenAI Chat Completions API.
         """
 
         try:
+
             response = self.client.chat.completions.create(
-                model=MODEL_NAME,
+                model=self.model_name,
                 messages=messages,
+                temperature=TEMPERATURE,
+                max_completion_tokens=MAX_TOKENS,
+                top_p=TOP_P,
+                frequency_penalty=FREQUENCY_PENALTY,
+                presence_penalty=PRESENCE_PENALTY,
             )
 
-            return response.choices[0].message.content
+            usage = response.usage
+
+            return {
+                "content": response.choices[0].message.content or "",
+                "usage": {
+                    "provider": "openai",
+                    "model": self.model_name,
+                    "temperature": TEMPERATURE,
+                    "max_tokens": MAX_TOKENS,
+                    "top_p": TOP_P,
+                    "frequency_penalty": FREQUENCY_PENALTY,
+                    "presence_penalty": PRESENCE_PENALTY,
+                    "input_tokens": getattr(
+                        usage,
+                        "prompt_tokens",
+                        None,
+                    ),
+                    "output_tokens": getattr(
+                        usage,
+                        "completion_tokens",
+                        None,
+                    ),
+                    "total_tokens": getattr(
+                        usage,
+                        "total_tokens",
+                        None,
+                    ),
+                    "finish_reason": response.choices[0].finish_reason,
+                },
+            }
 
         except RateLimitError as exc:
-            raise RuntimeError("OpenAI rate limit exceeded.") from exc
+            raise RuntimeError(
+                "OpenAI rate limit exceeded. Please try again later."
+            ) from exc
+
+        except Exception as exc:
+            raise RuntimeError(
+                f"OpenAI provider error: {exc}"
+            ) from exc

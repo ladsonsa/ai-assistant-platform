@@ -1,18 +1,39 @@
-# app.py
+import traceback
 
 import streamlit as st
 
+from ai_assistant_platform.config.settings import (
+    FREQUENCY_PENALTY,
+    GEMINI_MODEL,
+    MAX_TOKENS,
+    OLLAMA_MODEL,
+    OPENAI_MODEL,
+    PRESENCE_PENALTY,
+    PROVIDER_NAME,
+    TEMPERATURE,
+    TOP_P,
+)
+
+from ai_assistant_platform.llm.llm_service import (
+    LLMService,
+)
 
 from ai_assistant_platform.memory.chat_memory import (
     add_message,
     get_chat_history,
     initialize_chat_memory,
 )
+
 from ai_assistant_platform.orchestrators.chatbot_orchestrator import (
     ChatbotOrchestrator,
 )
 
-from chatbot.llm_service import LLMService
+
+PROVIDERS = {
+    "openai": OPENAI_MODEL,
+    "gemini": GEMINI_MODEL,
+    "ollama": OLLAMA_MODEL,
+}
 
 
 def main() -> None:
@@ -29,16 +50,49 @@ def main() -> None:
 
     initialize_chat_memory()
 
-    llm_service = LLMService()
+    with st.sidebar:
 
-    orchestrator = ChatbotOrchestrator()
+        st.header("LLM Provider")
 
-    for message in get_chat_history():
+        provider = st.selectbox(
+            "Select provider",
+            options=list(PROVIDERS.keys()),
+            index=list(PROVIDERS.keys()).index(
+                PROVIDER_NAME
+            ),
+        )
 
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+        provider_info = st.empty()
 
-    user_input = st.chat_input("Type your mathematical question...")
+    try:
+
+        llm_service = LLMService(
+            provider_name=provider,
+        )
+
+        orchestrator = ChatbotOrchestrator(
+            llm_service=llm_service,
+        )
+
+    except RuntimeError as exc:
+
+        st.error(str(exc))
+        st.stop()
+
+    model = PROVIDERS[provider]
+
+    render_provider_info(
+        placeholder=provider_info,
+        provider=provider,
+        model=model,
+        usage=None,
+    )
+
+    render_history()
+
+    user_input = st.chat_input(
+        "Type your mathematical question..."
+    )
 
     if not user_input:
         return
@@ -51,6 +105,10 @@ def main() -> None:
     with st.chat_message("user"):
         st.markdown(user_input)
 
+    response = None
+    metadata = {}
+    usage = {}
+
     try:
 
         result = orchestrator.process_message(
@@ -58,10 +116,18 @@ def main() -> None:
             conversation_history=get_chat_history(),
         )
 
-        response = result["response"]
+        response = result.get(
+            "response",
+            "",
+        )
 
         metadata = result.get(
             "metadata",
+            {},
+        )
+
+        usage = result.get(
+            "usage",
             {},
         )
 
@@ -69,13 +135,14 @@ def main() -> None:
 
         response = str(exc)
 
-        metadata = {}
-
     except Exception:
 
-        response = "An unexpected error occurred while processing " "your request."
+        traceback.print_exc()
 
-        metadata = {}
+        response = (
+            "Ocorreu um erro inesperado ao "
+            "processar sua solicitação."
+        )
 
     add_message(
         role="assistant",
@@ -85,6 +152,111 @@ def main() -> None:
 
     with st.chat_message("assistant"):
         st.markdown(response)
+
+    render_provider_info(
+        placeholder=provider_info,
+        provider=provider,
+        model=model,
+        usage=usage,
+    )
+
+
+def render_history() -> None:
+    """
+    Render previous conversation messages.
+    """
+
+    for message in get_chat_history():
+
+        with st.chat_message(
+            message["role"],
+        ):
+            st.markdown(
+                message["content"],
+            )
+
+
+def render_provider_info(
+    placeholder,
+    provider: str,
+    model: str,
+    usage: dict | None,
+) -> None:
+    """
+    Render current LLM configuration and usage data.
+    """
+
+    with placeholder.container():
+
+        st.subheader(
+            "Current Provider",
+        )
+
+        st.write(
+            f"**Provider:** {provider}"
+        )
+
+        st.write(
+            f"**Model:** {model}"
+        )
+
+        st.divider()
+
+        st.subheader(
+            "Generation Parameters",
+        )
+
+        st.write(
+            f"**Temperature:** {TEMPERATURE}"
+        )
+
+        st.write(
+            f"**Max Tokens:** {MAX_TOKENS}"
+        )
+
+        st.write(
+            f"**Top P:** {TOP_P}"
+        )
+
+        if provider == "openai":
+
+            st.write(
+                f"**Frequency Penalty:** "
+                f"{FREQUENCY_PENALTY}"
+            )
+
+            st.write(
+                f"**Presence Penalty:** "
+                f"{PRESENCE_PENALTY}"
+            )
+
+        if not usage:
+            return
+
+        st.divider()
+
+        st.subheader(
+            "Last Request",
+        )
+
+        fields = {
+            "Input Tokens": "input_tokens",
+            "Output Tokens": "output_tokens",
+            "Total Tokens": "total_tokens",
+            "Finish Reason": "finish_reason",
+            "Eval Duration": "eval_duration",
+        }
+
+        for label, key in fields.items():
+
+            value = usage.get(
+                key,
+            )
+
+            if value is not None:
+                st.write(
+                    f"**{label}:** {value}"
+                )
 
 
 if __name__ == "__main__":
