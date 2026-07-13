@@ -37,11 +37,7 @@ class ChatbotOrchestrator:
         llm_service: LLMService | None = None,
     ) -> None:
 
-        self.llm_service = (
-            llm_service
-            if llm_service is not None
-            else LLMService()
-        )
+        self.llm_service = llm_service if llm_service is not None else LLMService()
 
         self.context_resolver = ContextResolver(
             llm_service=self.llm_service,
@@ -53,7 +49,6 @@ class ChatbotOrchestrator:
             llm_service=self.llm_service,
         )
 
-
     def process_message(
         self,
         user_message: str,
@@ -64,12 +59,10 @@ class ChatbotOrchestrator:
             conversation_history,
         )
 
-
         math_context = self.context_resolver.resolve(
             user_message=user_message,
             last_math_result=last_math_result,
         )
-
 
         if math_context is None:
 
@@ -79,20 +72,14 @@ class ChatbotOrchestrator:
                 "usage": {},
             }
 
-
         expression = math_context.expression
 
-
-        if (
-            math_context.use_previous_result
-            and last_math_result is not None
-        ):
+        if math_context.use_previous_result and last_math_result is not None:
 
             expression = expression.replace(
                 "$result",
                 str(last_math_result),
             )
-
 
         try:
 
@@ -100,33 +87,29 @@ class ChatbotOrchestrator:
                 expression=expression,
             )
 
-
         except ZeroDivisionError:
 
-            error_response = (
-                self.writer_agent.generate_error_response(
-                    user_message=user_message,
-                    error="Division by zero.",
-                )
-            )
-
-            return {
-                "response": error_response["content"],
-                "metadata": {},
-                "usage": error_response.get(
-                    "usage",
-                    {},
-                ),
+            error_messages = {
+                "pt": "Erro: Divisão por zero não é permitida na matemática.",
+                "en": "Error: Division by zero is not allowed.",
+                "es": "Error: La división por cero no está permitida.",
             }
 
+            # Pega o idioma detectado pelo context_resolver, se falhar usa português
+            lang = getattr(math_context, "language", "pt")
+            response_text = error_messages.get(lang, error_messages["pt"])
+
+            return {
+                "response": response_text,
+                "metadata": {"error": "ZeroDivisionError", "expression": expression},
+                "usage": {},
+            }
 
         except ValueError as exc:
 
-            error_response = (
-                self.writer_agent.generate_error_response(
-                    user_message=user_message,
-                    error=str(exc),
-                )
+            error_response = self.writer_agent.generate_error_response(
+                user_message=user_message,
+                error=str(exc),
             )
 
             return {
@@ -138,14 +121,10 @@ class ChatbotOrchestrator:
                 ),
             }
 
-
-        response = (
-            self.writer_agent.generate_response(
-                result=result,
-                language=math_context.language,
-            )
+        response = self.writer_agent.generate_response(
+            result=result,
+            language=math_context.language,
         )
-
 
         return {
             "response": response["content"],
@@ -160,13 +139,10 @@ class ChatbotOrchestrator:
             ),
         }
 
-
-
     def _extract_last_math_result(
         self,
         conversation_history: list[dict],
     ) -> float | None:
-
 
         for message in reversed(
             conversation_history,
@@ -181,10 +157,7 @@ class ChatbotOrchestrator:
 
                 return metadata["math_result"]
 
-
         return None
-
-
 
     def _refusal_message(
         self,

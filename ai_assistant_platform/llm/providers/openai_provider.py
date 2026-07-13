@@ -87,6 +87,4 @@ class OpenAIProvider(BaseLLMProvider):
             ) from exc
 
         except Exception as exc:
-            raise RuntimeError(
-                f"OpenAI provider error: {exc}"
-            ) from exc
+            raise RuntimeError(f"OpenAI provider error: {exc}") from exc

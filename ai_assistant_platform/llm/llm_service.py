@@ -16,9 +16,7 @@ class LLMService:
         provider_name: str | None = None,
     ) -> None:
 
-        self.provider_name = (
-            provider_name or PROVIDER_NAME
-        )
+        self.provider_name = provider_name or PROVIDER_NAME
 
         self.provider = ProviderFactory.get_provider(
             self.provider_name,

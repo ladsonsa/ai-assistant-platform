@@ -37,9 +37,7 @@ class WriterAgent:
             messages=[
                 {
                     "role": "system",
-                    "content": (
-                        "You are a multilingual mathematical assistant."
-                    ),
+                    "content": ("You are a multilingual mathematical assistant."),
                 },
                 {
                     "role": "user",

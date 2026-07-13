@@ -64,21 +64,33 @@ class GeminiProvider(BaseLLMProvider):
                 "temperature": TEMPERATURE,
                 "max_tokens": MAX_TOKENS,
                 "top_p": TOP_P,
-                "input_tokens": getattr(
-                    usage,
-                    "prompt_token_count",
-                    None,
-                ) if usage else None,
-                "output_tokens": getattr(
-                    usage,
-                    "candidates_token_count",
-                    None,
-                ) if usage else None,
-                "total_tokens": getattr(
-                    usage,
-                    "total_token_count",
-                    None,
-                ) if usage else None,
+                "input_tokens": (
+                    getattr(
+                        usage,
+                        "prompt_token_count",
+                        None,
+                    )
+                    if usage
+                    else None
+                ),
+                "output_tokens": (
+                    getattr(
+                        usage,
+                        "candidates_token_count",
+                        None,
+                    )
+                    if usage
+                    else None
+                ),
+                "total_tokens": (
+                    getattr(
+                        usage,
+                        "total_token_count",
+                        None,
+                    )
+                    if usage
+                    else None
+                ),
                 "finish_reason": getattr(
                     response,
                     "finish_reason",
@@ -98,13 +110,9 @@ class GeminiProvider(BaseLLMProvider):
         prompt_parts: list[str] = []
 
         for message in messages:
-            prompt_parts.append(
-                f"{message['role'].capitalize()}: {message['content']}"
-            )
+            prompt_parts.append(f"{message['role'].capitalize()}: {message['content']}")
 
-        prompt_parts.append(
-            "Assistant:"
-        )
+        prompt_parts.append("Assistant:")
 
         return "\n\n".join(
             prompt_parts,

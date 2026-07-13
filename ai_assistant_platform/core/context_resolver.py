@@ -112,7 +112,6 @@ class ContextResolver:
         """
         Extract mathematical expressions directly from the message.
         """
-
         cleaned = text.lower()
 
         for prefix in (
@@ -122,22 +121,19 @@ class ContextResolver:
             "resolve",
             "resolva",
         ):
-            cleaned = cleaned.replace(
-                prefix,
-                "",
-            )
+            cleaned = cleaned.replace(prefix, "")
 
         if "$result" in cleaned:
-            cleaned = cleaned.replace(
-                "resultado anterior",
-                "$result",
-            ).replace(
-                "resultado",
-                "$result",
+            cleaned = cleaned.replace("resultado anterior", "$result").replace(
+                "resultado", "$result"
             )
 
+        text_without_result = cleaned.replace("$result", "")
+        if re.search(r"[a-z]", text_without_result):
+            return None
+
         match = re.search(
-            r"[\d\.\+\-\*\/\(\)\s\$a-z_]+",
+            r"[\d\.\+\-\*\/\(\)\s\$]+",
             cleaned,
         )
 
@@ -145,11 +141,9 @@ class ContextResolver:
             return None
 
         expression = match.group().strip()
+        expression = expression.replace("\n", "").replace("\r", "").replace(" ", "")
 
-        if (
-            not re.search(r"\d", expression)
-            and "$result" not in expression
-        ):
+        if not re.search(r"\d", expression) and "$result" not in expression:
             return None
 
         return expression
@@ -157,7 +151,7 @@ class ContextResolver:
     def _call_llm(
         self,
         user_message: str,
-        last_math_result: float |None,
+        last_math_result: float | None,
     ) -> dict | None:
 
         response = self.llm_service.generate_response(
@@ -207,6 +201,8 @@ class ContextResolver:
             "calcular",
             "soma",
             "somar",
+            "subtraia",
+            "subitrair",
             "mais",
             "menos",
             "vezes",
@@ -227,10 +223,7 @@ class ContextResolver:
             "perdi",
         )
 
-        return any(
-            word in lowered
-            for word in math_words
-        )
+        return any(word in lowered for word in math_words)
 
     def _detect_language(
         self,

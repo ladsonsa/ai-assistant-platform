@@ -37,9 +37,7 @@ class ProviderFactory:
         )
 
         if provider_info is None:
-            raise ValueError(
-                f"Unsupported provider: {provider_name}"
-            )
+            raise ValueError(f"Unsupported provider: {provider_name}")
 
         module_name, class_name = provider_info
 
@@ -73,6 +71,5 @@ class ProviderFactory:
         except Exception as exc:
 
             raise RuntimeError(
-                f"Failed to initialize provider "
-                f"'{provider_name}': {exc}"
+                f"Failed to initialize provider " f"'{provider_name}': {exc}"
             ) from exc

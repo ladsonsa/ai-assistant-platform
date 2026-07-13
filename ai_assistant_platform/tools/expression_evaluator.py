@@ -3,7 +3,6 @@
 import ast
 import operator
 
-
 _OPERATORS = {
     ast.Add: operator.add,
     ast.Sub: operator.sub,
@@ -103,10 +102,7 @@ def _evaluate_node(
             node.right,
         )
 
-        if (
-            operator_type is ast.Div
-            and right == 0
-        ):
+        if operator_type is ast.Div and right == 0:
             raise ZeroDivisionError("Division by zero.")
 
         return _OPERATORS[operator_type](
@@ -114,6 +110,4 @@ def _evaluate_node(
             right,
         )
 
-    raise ValueError(
-        "Invalid mathematical expression."
-    )
+    raise ValueError("Invalid mathematical expression.")

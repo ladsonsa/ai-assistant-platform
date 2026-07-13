@@ -59,10 +59,7 @@ class OllamaProvider(BaseLLMProvider):
                     "top_p": TOP_P,
                     "input_tokens": input_tokens,
                     "output_tokens": output_tokens,
-                    "total_tokens": (
-                        (input_tokens or 0)
-                        + (output_tokens or 0)
-                    ),
+                    "total_tokens": ((input_tokens or 0) + (output_tokens or 0)),
                     "eval_duration": response.get(
                         "eval_duration",
                     ),
@@ -79,6 +76,4 @@ class OllamaProvider(BaseLLMProvider):
             }
 
         except Exception as exc:
-            raise RuntimeError(
-                f"Ollama provider error: {exc}"
-            ) from exc
+            raise RuntimeError(f"Ollama provider error: {exc}") from exc

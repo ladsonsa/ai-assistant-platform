@@ -28,7 +28,6 @@ from ai_assistant_platform.orchestrators.chatbot_orchestrator import (
     ChatbotOrchestrator,
 )
 
-
 PROVIDERS = {
     "openai": OPENAI_MODEL,
     "gemini": GEMINI_MODEL,
@@ -57,9 +56,7 @@ def main() -> None:
         provider = st.selectbox(
             "Select provider",
             options=list(PROVIDERS.keys()),
-            index=list(PROVIDERS.keys()).index(
-                PROVIDER_NAME
-            ),
+            index=list(PROVIDERS.keys()).index(PROVIDER_NAME),
         )
 
         provider_info = st.empty()
@@ -90,9 +87,7 @@ def main() -> None:
 
     render_history()
 
-    user_input = st.chat_input(
-        "Type your mathematical question..."
-    )
+    user_input = st.chat_input("Type your mathematical question...")
 
     if not user_input:
         return
@@ -139,10 +134,7 @@ def main() -> None:
 
         traceback.print_exc()
 
-        response = (
-            "Ocorreu um erro inesperado ao "
-            "processar sua solicitação."
-        )
+        response = "Ocorreu um erro inesperado ao " "processar sua solicitação."
 
     add_message(
         role="assistant",
@@ -192,13 +184,9 @@ def render_provider_info(
             "Current Provider",
         )
 
-        st.write(
-            f"**Provider:** {provider}"
-        )
+        st.write(f"**Provider:** {provider}")
 
-        st.write(
-            f"**Model:** {model}"
-        )
+        st.write(f"**Model:** {model}")
 
         st.divider()
 
@@ -206,29 +194,17 @@ def render_provider_info(
             "Generation Parameters",
         )
 
-        st.write(
-            f"**Temperature:** {TEMPERATURE}"
-        )
+        st.write(f"**Temperature:** {TEMPERATURE}")
 
-        st.write(
-            f"**Max Tokens:** {MAX_TOKENS}"
-        )
+        st.write(f"**Max Tokens:** {MAX_TOKENS}")
 
-        st.write(
-            f"**Top P:** {TOP_P}"
-        )
+        st.write(f"**Top P:** {TOP_P}")
 
         if provider == "openai":
 
-            st.write(
-                f"**Frequency Penalty:** "
-                f"{FREQUENCY_PENALTY}"
-            )
+            st.write(f"**Frequency Penalty:** " f"{FREQUENCY_PENALTY}")
 
-            st.write(
-                f"**Presence Penalty:** "
-                f"{PRESENCE_PENALTY}"
-            )
+            st.write(f"**Presence Penalty:** " f"{PRESENCE_PENALTY}")
 
         if not usage:
             return
@@ -254,9 +230,7 @@ def render_provider_info(
             )
 
             if value is not None:
-                st.write(
-                    f"**{label}:** {value}"
-                )
+                st.write(f"**{label}:** {value}")
 
 
 if __name__ == "__main__":
