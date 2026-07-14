@@ -78,12 +78,19 @@ def main() -> None:
 
     model = PROVIDERS[provider]
 
-    render_provider_info(
-        placeholder=provider_info,
-        provider=provider,
-        model=model,
-        usage=None,
-    )
+    chat_history = get_chat_history()
+
+    if chat_history:
+
+        render_provider_info(
+            placeholder=provider_info,
+            provider=provider,
+            model=model,
+            usage=None,
+        )
+    else:
+
+        provider_info.empty()
 
     render_history()
 
@@ -136,15 +143,34 @@ def main() -> None:
 
         response = "Ocorreu um erro inesperado ao " "processar sua solicitação."
 
+    with st.chat_message("assistant"):
+
+        with st.spinner(""):
+            try:
+
+                result = orchestrator.process_message(
+                    user_message=user_input,
+                    conversation_history=get_chat_history(),
+                )
+
+                response = result.get("response", "")
+                metadata = result.get("metadata", {})
+                usage = result.get("usage", {})
+
+            except RuntimeError as exc:
+                response = str(exc)
+            except Exception:
+                traceback.print_exc()
+                response = "Ocorreu um erro inesperado ao processar sua solicitação."
+
+        st.markdown(response)
+
     add_message(
         role="assistant",
         content=response,
         metadata=metadata,
     )
-
-    with st.chat_message("assistant"):
-        st.markdown(response)
-
+    
     render_provider_info(
         placeholder=provider_info,
         provider=provider,
