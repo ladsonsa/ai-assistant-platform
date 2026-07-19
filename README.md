@@ -2,7 +2,7 @@
 
 > A production-oriented AI assistant platform that combines deterministic computation, agent orchestration, and Large Language Models (LLMs) using modern Python software engineering practices.
 
-![Python](https://img.shields.io/badge/Python-3.13+-3776AB?logo=python)
+![Python](https://img.shields.io/badge/Python-3.14+-3776AB?logo=python)
 ![Poetry](https://img.shields.io/badge/Poetry-Dependency%20Management-60A5FA?logo=poetry)
 ![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?logo=streamlit)
 ![Pytest](https://img.shields.io/badge/Tested%20with-Pytest-0A9EDC?logo=pytest)
@@ -192,7 +192,7 @@ Multiply the result by 8.
 | Package Manager | Poetry |
 | Frontend | Streamlit |
 | Testing | Pytest |
-| Code Quality | Ruff |
+| Code Quality | Black • Ruff |
 | LLM | OpenAI SDK |
 | Providers | OpenAI • Gemini • Ollama |
 | Parsing | Python AST |
@@ -328,7 +328,6 @@ poetry run pytest --cov
 
 ## In Progress
 
-- Task 12
 - Test suite stabilization
 - Context resolution improvements
 - Architecture refactoring
