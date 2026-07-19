@@ -1,154 +1,230 @@
 # AI Assistant Platform
 
-An agent-based AI assistant platform built with modern software engineering practices, deterministic tools, conversational memory, and modular architecture.
+> A production-oriented AI assistant platform that combines deterministic computation, agent orchestration, and Large Language Models (LLMs) using modern Python software engineering practices.
 
-This project demonstrates how specialized AI agents can collaborate through an orchestration layer while maintaining clear responsibility boundaries and production-ready design principles.
-
----
-
-## Highlights
-
-* Multi-agent architecture
-* Deterministic mathematical tools
-* LLM provider abstraction layer
-* Conversational memory
-* Streamlit chat interface
-* Modular and scalable design
-* Production-oriented software architecture
-* Testable and extensible components
+![Python](https://img.shields.io/badge/Python-3.14+-3776AB?logo=python)
+![Poetry](https://img.shields.io/badge/Poetry-Dependency%20Management-60A5FA?logo=poetry)
+![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?logo=streamlit)
+![Pytest](https://img.shields.io/badge/Tested%20with-Pytest-0A9EDC?logo=pytest)
+![License](https://img.shields.io/badge/license-MIT-green)
 
 ---
 
-## Demo Architecture
+# Overview
+
+AI Assistant Platform is an educational project designed to simulate the architecture of modern AI assistants.
+
+Instead of allowing the language model to perform every task, the system separates responsibilities between specialized agents and deterministic tools.
+
+This architecture improves:
+
+- Reliability
+- Testability
+- Maintainability
+- Scalability
+- Security
+
+The project demonstrates software engineering concepts commonly used in production AI systems.
+
+---
+
+# Key Features
+
+- Agent-based architecture
+- Deterministic mathematical engine
+- Secure AST expression evaluator
+- Context-aware conversations
+- Multi-provider LLM support
+- Provider abstraction layer
+- Conversational memory
+- Prompt engineering
+- Guardrails
+- Streamlit interface
+- Modular architecture
+- Production-oriented design
+
+---
+
+# Architecture
 
 ```text
-User
- │
- ▼
-Streamlit Chat Interface
- │
- ▼
-Chatbot Orchestrator
- │
- ├── Mathematical Agent
- │        │
- │        ▼
- │   Math Tools
- │
- └── Writer Agent
-          │
-          ▼
-     LLM Service
-          │
-          ▼
-    Provider Factory
-          │
- ┌────────┼────────┐
- ▼        ▼        ▼
-OpenAI  Gemini   Ollama
+                    User
+                      │
+                      ▼
+             Streamlit Interface
+                      │
+                      ▼
+          Chatbot Orchestrator
+                      │
+          ┌───────────┴───────────┐
+          ▼                       ▼
+     Chat Memory          Context Resolver
+                                  │
+                                  ▼
+                      Mathematical Agent
+                                  │
+                                  ▼
+                      Expression Evaluator
+                                  │
+                                  ▼
+                           Math Result
+                                  │
+                                  ▼
+                           Writer Agent
+                                  │
+                                  ▼
+                            LLM Service
+                                  │
+                                  ▼
+                         Provider Factory
+                                  │
+                 ┌────────────────┼────────────────┐
+                 ▼                ▼                ▼
+              OpenAI          Google Gemini      Ollama
 ```
 
 ---
 
-## Project Goal
+# Core Design Principles
 
-The objective of this project is to explore concepts commonly found in modern AI systems and production environments, including:
+The project follows a deterministic execution model.
 
-* Agent orchestration
-* Tool calling
-* Prompt engineering
-* Conversational memory
-* Dependency injection
-* Provider abstraction
-* Software modularization
-* AI guardrails
+The language model is responsible for:
 
-Rather than relying entirely on LLM reasoning, the application combines deterministic computation with natural language generation to improve reliability and maintainability.
+- Intent interpretation
+- Language detection
+- Human-friendly responses
+
+The application is responsible for:
+
+- Mathematical execution
+- State management
+- Business rules
+- Flow orchestration
+
+Mathematical operations are **never executed by the LLM**.
+
+Expressions are evaluated locally using Python's Abstract Syntax Tree (AST), providing deterministic and secure execution.
 
 ---
 
-## Features
+# Current Features
 
-### Mathematical Assistant
+## Mathematical Assistant
 
 Supported operations:
 
-* Addition
-* Subtraction
-* Multiplication
-* Division
-
-Unlike traditional chatbots, calculations are never performed by the LLM.
-
-All operations are executed through deterministic Python tools, guaranteeing consistent and accurate results.
-
----
-
-### Human-Friendly Responses
-
-A dedicated Writer Agent transforms raw numerical results into conversational responses while:
-
-* preserving the user's language;
-* improving readability;
-* maintaining a professional tone.
+- Addition
+- Subtraction
+- Multiplication
+- Division
+- Parenthesized expressions
+- Unary operators
+- Operator precedence
 
 ---
 
-### Multi-Provider LLM Support
+## Context Resolution
 
-The platform was designed to support multiple providers through an abstraction layer.
+The Context Resolver transforms natural language into structured mathematical context before execution.
 
-Currently supported:
+Responsibilities include:
 
-* OpenAI
-* Google Gemini
-* Ollama
-
-Switching providers requires only configuration changes.
-
----
-
-### Conversational Memory
-
-The application preserves conversation history during the session, enabling contextual interactions and follow-up questions.
+- Direct expression extraction
+- Intent classification
+- Previous result detection
+- Language normalization
+- LLM fallback
 
 ---
 
-## Technologies
+## Writer Agent
 
-| Category         | Technology                            |
-| ---------------- | ------------------------------------- |
-| Language         | Python                                |
-| Frontend         | Streamlit                             |
-| LLM Integration  | OpenAI SDK                            |
-| Testing          | Pytest                                |
-| Architecture     | Multi-Agent                           |
-| Patterns         | Factory, Dependency Injection, Router |
-| State Management | Streamlit Session State               |
+The Writer Agent converts deterministic results into natural language while preserving the user's language.
 
----
+Example:
 
-## Engineering Concepts Demonstrated
+User:
 
-This repository intentionally showcases concepts expected in modern AI engineering roles:
+```text
+What is 15 × 8?
+```
 
-* Clean Architecture
-* Separation of Concerns
-* Dependency Injection
-* Factory Pattern
-* Router Pattern
-* Agent Orchestration
-* Tool Calling
-* Prompt Engineering
-* Guardrails
-* Conversational Memory
-* Modular Design
-* Exception Handling
-* Unit Testing
+Response:
+
+```text
+The result is 120.
+```
 
 ---
 
-## Project Structure
+## Multi-provider Support
+
+Supported providers:
+
+- OpenAI
+- Google Gemini
+- Ollama
+
+Changing providers requires only configuration changes.
+
+---
+
+## Conversational Memory
+
+Conversation history is preserved during the session, allowing follow-up requests such as:
+
+```text
+What is 5 + 4?
+
+Now subtract 2.
+
+Multiply the result by 8.
+```
+
+---
+
+# Technologies
+
+| Category | Technology |
+|-----------|------------|
+| Language | Python |
+| Package Manager | Poetry |
+| Frontend | Streamlit |
+| Testing | Pytest |
+| Code Quality | Black • Ruff |
+| LLM | OpenAI SDK |
+| Providers | OpenAI • Gemini • Ollama |
+| Parsing | Python AST |
+| Architecture | Multi-Agent |
+| State | Streamlit Session State |
+
+---
+
+# Software Engineering Concepts
+
+This project demonstrates:
+
+- SOLID Principles
+- DRY Principle
+- Separation of Concerns
+- Layered Architecture
+- Dependency Injection
+- Factory Pattern
+- Provider Abstraction
+- Agent Orchestration
+- Tool Calling
+- Prompt Engineering
+- Guardrails
+- Conversational Memory
+- Modular Design
+- Exception Handling
+- Static Typing
+- Unit Testing
+
+---
+
+# Project Structure
 
 ```text
 ai_assistant_platform/
@@ -157,11 +233,9 @@ ai_assistant_platform/
 │   ├── mathematical_agent.py
 │   └── writer_agent.py
 │
-├── orchestrators/
-│   └── chatbot_orchestrator.py
-│
-├── tools/
-│   └── math_operations.py
+├── core/
+│   ├── context_resolver.py
+│   └── math_context.py
 │
 ├── llm/
 │   ├── llm_service.py
@@ -169,111 +243,127 @@ ai_assistant_platform/
 │   └── providers/
 │
 ├── memory/
-│   └── chat_memory.py
 │
-├── config/
-│   └── settings.py
+├── orchestrators/
+│
+├── prompts/
+│
+├── tools/
+│   ├── expression_evaluator.py
+│   └── math_operations.py
 │
 ├── tests/
 │
-└── app.py
+├── app.py
+│
+└── pyproject.toml
 ```
 
 ---
 
-## Example Workflow
-
-**Entrada do usuário **
-
-```text
-What is 15 multiplied by 8?
-```
-
-**Fluxo de Execução **
-
-```text
-User
-→ Orchestrator
-→ Mathematical Agent
-→ Mathematical Tool
-→ Writer Agent
-→ User
-```
-
-**Resposta **
-
-```text
-The result of 15 multiplied by 8 is 120.
-```
-
----
-
-## Por que este projeto é importante 
-
-Most AI applications today rely heavily on LLM reasoning for every task.
-
-This project demonstrates an alternative and increasingly adopted approach:
-
-> Use LLMs for communication and reasoning, and deterministic tools for execution.
-
-This architecture improves:
-
-* reliability;
-* testability;
-* scalability;
-* maintainability;
-* operational costs.
-
-The same principle is widely used in modern AI assistants and agentic systems.
-
----
-
-## Running Locally
+# Running the Project
 
 Clone the repository:
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/your-user/ai_assistant_platform.git
+
 cd ai_assistant_platform
 ```
 
 Install dependencies:
 
 ```bash
-pip install -r requirements.txt
+poetry install
 ```
 
 Configure environment variables:
 
 ```env
 OPENAI_API_KEY=your_api_key
-MODEL_NAME=gpt-4o-mini
+
 LLM_PROVIDER=openai
+
+MODEL_NAME=gpt-4o-mini
 ```
 
-Start the application:
+Run the application:
 
 ```bash
-streamlit run app.py
+poetry run streamlit run app.py
 ```
 
 ---
 
-## Future Improvements
+# Running Tests
 
-Planned extensions include:
+Execute the unit tests:
 
-* Web Search Agent
-* Code Generation Agent
-* SQL Agent
-* RAG Pipeline
-* Vector Database Integration
-* Persistent Memory
-* Docker Deployment
-* CI/CD Pipelines
+```bash
+poetry run pytest
+```
+
+Generate a coverage report:
+
+```bash
+poetry run pytest --cov
+```
 
 ---
 
-## Author
+# Roadmap
 
-Developed as a practical study project focused on AI Engineering, Agent Architectures, and Production-Oriented Software Design.
+## Completed
+
+- Agent-based architecture
+- Mathematical Agent
+- Writer Agent
+- Context Resolver
+- Secure AST evaluator
+- Multi-provider support
+- Prompt engineering
+- Conversational memory
+- Streamlit interface
+- Poetry migration
+
+## In Progress
+
+- Test suite stabilization
+- Context resolution improvements
+- Architecture refactoring
+
+## Planned
+
+- Web Search Agent
+- SQL Agent
+- RAG Pipeline
+- Persistent Memory
+- Docker
+- GitHub Actions
+- REST API
+- MCP Integration
+
+---
+
+# Why This Project?
+
+Modern AI systems should not rely exclusively on LLM reasoning.
+
+This project follows a hybrid approach:
+
+- LLMs interpret language.
+- Deterministic tools execute logic.
+
+This separation improves correctness, security, and maintainability while keeping the architecture modular and easy to extend.
+
+---
+
+# Future Architecture
+
+After the current test suite is stabilized, the architecture will evolve toward a more decoupled design through dependency injection and smaller specialized services, improving maintainability and adherence to SOLID principles.
+
+---
+
+# Author
+
+Developed as a practical AI Engineering project focused on modern agent architectures, deterministic execution, and production-oriented Python software design.
