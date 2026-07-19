@@ -66,10 +66,7 @@ def test_rejects_non_math_requests(
 
     mathematical_agent.evaluate_expression.assert_not_called()
 
-    assert (
-        response["response"]
-        == "I can only answer mathematical questions."
-    )
+    assert response["response"] == "I can only answer mathematical questions."
 
 
 @pytest.mark.parametrize(
@@ -103,10 +100,7 @@ def test_rejects_prompt_injection(
 
     mathematical_agent.evaluate_expression.assert_not_called()
 
-    assert (
-        response["response"]
-        == "I can only answer mathematical questions."
-    )
+    assert response["response"] == "I can only answer mathematical questions."
 
 
 def test_llm_never_receives_math_expression(
@@ -126,9 +120,7 @@ def test_llm_never_receives_math_expression(
 
     mathematical_agent.evaluate_expression.return_value = 9
 
-    writer_agent.generate_response.return_value = (
-        "The result is 9."
-    )
+    writer_agent.generate_response.return_value = "The result is 9."
 
     orchestrator.process_message(
         user_message="5 + 4",
@@ -155,9 +147,7 @@ def test_division_by_zero_is_propagated(
 
     context_resolver.resolve.return_value = context
 
-    mathematical_agent.evaluate_expression.side_effect = (
-        ValueError("Division by zero")
-    )
+    mathematical_agent.evaluate_expression.side_effect = ValueError("Division by zero")
 
     with pytest.raises(ValueError):
         orchestrator.process_message(
@@ -192,8 +182,8 @@ def test_does_not_execute_unsafe_expressions(
 
     context_resolver.resolve.return_value = context
 
-    mathematical_agent.evaluate_expression.side_effect = (
-        ValueError("Invalid expression")
+    mathematical_agent.evaluate_expression.side_effect = ValueError(
+        "Invalid expression"
     )
 
     with pytest.raises(ValueError):
@@ -220,9 +210,7 @@ def test_components_are_called_in_order(
 
     mathematical_agent.evaluate_expression.return_value = 40
 
-    writer_agent.generate_response.return_value = (
-        "The result is 40."
-    )
+    writer_agent.generate_response.return_value = "The result is 40."
 
     orchestrator.process_message(
         user_message="8 * 5",

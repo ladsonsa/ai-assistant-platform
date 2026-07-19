@@ -42,7 +42,6 @@ class ProviderFactory:
         module_name, class_name = provider_info
 
         try:
-
             module = import_module(
                 module_name,
             )
@@ -55,21 +54,18 @@ class ProviderFactory:
             return provider_class()
 
         except ModuleNotFoundError as exc:
-
             raise RuntimeError(
                 f"The '{provider_name}' provider is unavailable because "
                 f"the required package '{exc.name}' is not installed."
             ) from exc
 
         except AttributeError as exc:
-
             raise RuntimeError(
                 f"The provider class '{class_name}' was not found in "
                 f"module '{module_name}'."
             ) from exc
 
         except Exception as exc:
-
             raise RuntimeError(
-                f"Failed to initialize provider " f"'{provider_name}': {exc}"
+                f"Failed to initialize provider '{provider_name}': {exc}"
             ) from exc

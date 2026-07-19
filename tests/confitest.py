@@ -103,11 +103,7 @@ def spanish_history() -> list[dict[str, Any]]:
 @pytest.fixture
 def llm_math_response() -> dict[str, Any]:
     return {
-        "content": (
-            '{"is_math": true, '
-            '"expression": "5 + 4", '
-            '"language": "en"}'
-        ),
+        "content": ('{"is_math": true, "expression": "5 + 4", "language": "en"}'),
         "usage": {},
     }
 
@@ -115,11 +111,7 @@ def llm_math_response() -> dict[str, Any]:
 @pytest.fixture
 def llm_non_math_response() -> dict[str, Any]:
     return {
-        "content": (
-            '{"is_math": false, '
-            '"expression": null, '
-            '"language": "en"}'
-        ),
+        "content": ('{"is_math": false, "expression": null, "language": "en"}'),
         "usage": {},
     }
 

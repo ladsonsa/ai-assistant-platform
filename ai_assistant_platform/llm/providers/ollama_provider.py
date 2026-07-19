@@ -30,7 +30,6 @@ class OllamaProvider(BaseLLMProvider):
         """
 
         try:
-
             response = self.client.chat(
                 model=self.model_name,
                 messages=messages,

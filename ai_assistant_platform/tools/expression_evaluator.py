@@ -56,7 +56,6 @@ def _evaluate_node(
         node,
         ast.Constant,
     ):
-
         if not isinstance(
             node.value,
             (
@@ -72,7 +71,6 @@ def _evaluate_node(
         node,
         ast.UnaryOp,
     ):
-
         operator_type = type(node.op)
 
         if operator_type not in _OPERATORS:
@@ -88,7 +86,6 @@ def _evaluate_node(
         node,
         ast.BinOp,
     ):
-
         operator_type = type(node.op)
 
         if operator_type not in _OPERATORS:

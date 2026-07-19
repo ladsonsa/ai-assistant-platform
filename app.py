@@ -50,7 +50,6 @@ def main() -> None:
     initialize_chat_memory()
 
     with st.sidebar:
-
         st.header("LLM Provider")
 
         provider = st.selectbox(
@@ -62,7 +61,6 @@ def main() -> None:
         provider_info = st.empty()
 
     try:
-
         llm_service = LLMService(
             provider_name=provider,
         )
@@ -72,7 +70,6 @@ def main() -> None:
         )
 
     except RuntimeError as exc:
-
         st.error(str(exc))
         st.stop()
 
@@ -81,7 +78,6 @@ def main() -> None:
     chat_history = get_chat_history()
 
     if chat_history:
-
         render_provider_info(
             placeholder=provider_info,
             provider=provider,
@@ -89,7 +85,6 @@ def main() -> None:
             usage=None,
         )
     else:
-
         provider_info.empty()
 
     render_history()
@@ -112,7 +107,6 @@ def main() -> None:
     usage = {}
 
     try:
-
         result = orchestrator.process_message(
             user_message=user_input,
             conversation_history=get_chat_history(),
@@ -134,20 +128,16 @@ def main() -> None:
         )
 
     except RuntimeError as exc:
-
         response = str(exc)
 
     except Exception:
-
         traceback.print_exc()
 
-        response = "Ocorreu um erro inesperado ao " "processar sua solicitação."
+        response = "Ocorreu um erro inesperado ao processar sua solicitação."
 
     with st.chat_message("assistant"):
-
         with st.spinner(""):
             try:
-
                 result = orchestrator.process_message(
                     user_message=user_input,
                     conversation_history=get_chat_history(),
@@ -170,7 +160,7 @@ def main() -> None:
         content=response,
         metadata=metadata,
     )
-    
+
     render_provider_info(
         placeholder=provider_info,
         provider=provider,
@@ -185,7 +175,6 @@ def render_history() -> None:
     """
 
     for message in get_chat_history():
-
         with st.chat_message(
             message["role"],
         ):
@@ -205,7 +194,6 @@ def render_provider_info(
     """
 
     with placeholder.container():
-
         st.subheader(
             "Current Provider",
         )
@@ -227,10 +215,9 @@ def render_provider_info(
         st.write(f"**Top P:** {TOP_P}")
 
         if provider == "openai":
+            st.write(f"**Frequency Penalty:** {FREQUENCY_PENALTY}")
 
-            st.write(f"**Frequency Penalty:** " f"{FREQUENCY_PENALTY}")
-
-            st.write(f"**Presence Penalty:** " f"{PRESENCE_PENALTY}")
+            st.write(f"**Presence Penalty:** {PRESENCE_PENALTY}")
 
         if not usage:
             return
@@ -250,7 +237,6 @@ def render_provider_info(
         }
 
         for label, key in fields.items():
-
             value = usage.get(
                 key,
             )

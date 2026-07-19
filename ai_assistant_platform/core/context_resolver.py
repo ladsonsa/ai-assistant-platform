@@ -48,7 +48,6 @@ class ContextResolver:
         )
 
         if expression is not None:
-
             return MathContext(
                 expression=expression,
                 use_previous_result="$result" in expression,

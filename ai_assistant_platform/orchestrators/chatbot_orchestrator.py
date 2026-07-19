@@ -65,7 +65,6 @@ class ChatbotOrchestrator:
         )
 
         if math_context is None:
-
             return {
                 "response": self._refusal_message(),
                 "metadata": {},
@@ -75,27 +74,23 @@ class ChatbotOrchestrator:
         expression = math_context.expression
 
         if math_context.use_previous_result and last_math_result is not None:
-
             expression = expression.replace(
                 "$result",
                 str(last_math_result),
             )
 
         try:
-
             result = self.mathematical_agent.execute(
                 expression=expression,
             )
 
         except ZeroDivisionError:
-
             error_messages = {
                 "pt": "Erro: Divisão por zero não é permitida na matemática.",
                 "en": "Error: Division by zero is not allowed.",
                 "es": "Error: La división por cero no está permitida.",
             }
 
-            # Pega o idioma detectado pelo context_resolver, se falhar usa português
             lang = getattr(math_context, "language", "pt")
             response_text = error_messages.get(lang, error_messages["pt"])
 
@@ -106,7 +101,6 @@ class ChatbotOrchestrator:
             }
 
         except ValueError as exc:
-
             error_response = self.writer_agent.generate_error_response(
                 user_message=user_message,
                 error=str(exc),
@@ -147,14 +141,12 @@ class ChatbotOrchestrator:
         for message in reversed(
             conversation_history,
         ):
-
             metadata = message.get(
                 "metadata",
                 {},
             )
 
             if "math_result" in metadata:
-
                 return metadata["math_result"]
 
         return None

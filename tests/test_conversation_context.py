@@ -63,9 +63,7 @@ def test_follow_up_subtraction(
 
     mathematical_agent.evaluate_expression.return_value = 7
 
-    writer_agent.generate_response.return_value = (
-        "The result is 7."
-    )
+    writer_agent.generate_response.return_value = "The result is 7."
 
     result = orchestrator.process_message(
         user_message="Now subtract 2.",
@@ -101,9 +99,7 @@ def test_follow_up_multiplication(
 
     mathematical_agent.evaluate_expression.return_value = 40
 
-    writer_agent.generate_response.return_value = (
-        "The result is 40."
-    )
+    writer_agent.generate_response.return_value = "The result is 40."
 
     result = orchestrator.process_message(
         user_message="Multiply by 5.",
@@ -138,9 +134,7 @@ def test_follow_up_division(
 
     mathematical_agent.evaluate_expression.return_value = 8
 
-    writer_agent.generate_response.return_value = (
-        "The result is 8."
-    )
+    writer_agent.generate_response.return_value = "The result is 8."
 
     result = orchestrator.process_message(
         user_message="Divide by 7.",
@@ -241,9 +235,7 @@ def test_previous_result_is_preserved_in_context(
 
     mathematical_agent.evaluate_expression.return_value = 50
 
-    writer_agent.generate_response.return_value = (
-        "The result is 50."
-    )
+    writer_agent.generate_response.return_value = "The result is 50."
 
     orchestrator.process_message(
         user_message="Add 8.",

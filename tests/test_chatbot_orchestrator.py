@@ -51,9 +51,7 @@ def test_process_math_message(
 
     context_resolver.resolve.return_value = context
     mathematical_agent.evaluate_expression.return_value = 4
-    writer_agent.generate_response.return_value = (
-        "The result is 4."
-    )
+    writer_agent.generate_response.return_value = "The result is 4."
 
     result = orchestrator.process_message(
         user_message="2 + 2",
@@ -102,10 +100,7 @@ def test_returns_refusal_when_context_is_none(
     writer_agent.generate_refusal_response.assert_called_once()
 
     assert result["metadata"] == {}
-    assert (
-        result["response"]
-        == "I can only answer mathematical questions."
-    )
+    assert result["response"] == "I can only answer mathematical questions."
 
 
 def test_propagates_math_exception(
@@ -122,9 +117,7 @@ def test_propagates_math_exception(
 
     context_resolver.resolve.return_value = context
 
-    mathematical_agent.evaluate_expression.side_effect = (
-        ValueError("Division by zero")
-    )
+    mathematical_agent.evaluate_expression.side_effect = ValueError("Division by zero")
 
     with pytest.raises(ValueError):
         orchestrator.process_message(
@@ -150,9 +143,7 @@ def test_calls_components_once(
 
     mathematical_agent.evaluate_expression.return_value = 25
 
-    writer_agent.generate_response.return_value = (
-        "The result is 25."
-    )
+    writer_agent.generate_response.return_value = "The result is 25."
 
     orchestrator.process_message(
         user_message="5 * 5",
@@ -190,13 +181,9 @@ def test_process_multiple_operations(
 
     context_resolver.resolve.return_value = context
 
-    mathematical_agent.evaluate_expression.return_value = (
-        result
-    )
+    mathematical_agent.evaluate_expression.return_value = result
 
-    writer_agent.generate_response.return_value = (
-        f"The result is {result}."
-    )
+    writer_agent.generate_response.return_value = f"The result is {result}."
 
     response = orchestrator.process_message(
         user_message=expression,
@@ -224,9 +211,7 @@ def test_preserves_language(
 
     mathematical_agent.evaluate_expression.return_value = 9
 
-    writer_agent.generate_response.return_value = (
-        "O resultado é 9."
-    )
+    writer_agent.generate_response.return_value = "O resultado é 9."
 
     orchestrator.process_message(
         user_message="Quanto é 5 + 4?",
@@ -256,9 +241,7 @@ def test_returns_complete_metadata(
 
     mathematical_agent.evaluate_expression.return_value = 15
 
-    writer_agent.generate_response.return_value = (
-        "The result is 15."
-    )
+    writer_agent.generate_response.return_value = "The result is 15."
 
     result = orchestrator.process_message(
         user_message="7 + 8",

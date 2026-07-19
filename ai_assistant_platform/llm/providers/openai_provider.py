@@ -39,7 +39,6 @@ class OpenAIProvider(BaseLLMProvider):
         """
 
         try:
-
             response = self.client.chat.completions.create(
                 model=self.model_name,
                 messages=messages,
