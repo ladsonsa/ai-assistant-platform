@@ -1,8 +1,8 @@
-# ai_assistant_platform/tools/math_operations.py
-
 from ai_assistant_platform.tools.expression_evaluator import (
-    evaluate_expression,
+    ExpressionEvaluator,
 )
+
+_evaluator = ExpressionEvaluator()
 
 
 def evaluate(
@@ -20,8 +20,8 @@ def evaluate(
         The numerical result of the evaluated expression.
     """
 
-    return evaluate_expression(
-        expression=expression,
+    return ExpressionEvaluator().evaluate(
+        expression,
     )
 
 
