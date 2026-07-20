@@ -14,6 +14,10 @@ from ai_assistant_platform.llm.llm_service import (
     LLMService,
 )
 
+from ai_assistant_platform.tools.expression_evaluator import (
+    ExpressionEvaluator,
+)
+
 
 class ChatbotOrchestrator:
     """
@@ -37,16 +41,20 @@ class ChatbotOrchestrator:
         llm_service: LLMService | None = None,
     ) -> None:
 
-        self.llm_service = llm_service if llm_service is not None else LLMService()
+        self._llm_service = llm_service if llm_service is not None else LLMService()
 
-        self.context_resolver = ContextResolver(
-            llm_service=self.llm_service,
+        self._context_resolver = ContextResolver(
+            llm_service=self._llm_service,
         )
 
-        self.mathematical_agent = MathematicalAgent()
+        evaluator = ExpressionEvaluator()
 
-        self.writer_agent = WriterAgent(
-            llm_service=self.llm_service,
+        self._mathematical_agent = MathematicalAgent(
+            evaluator=evaluator,
+        )
+
+        self._writer_agent = WriterAgent(
+            llm_service=self._llm_service,
         )
 
     def process_message(
@@ -59,7 +67,7 @@ class ChatbotOrchestrator:
             conversation_history,
         )
 
-        math_context = self.context_resolver.resolve(
+        math_context = self._context_resolver.resolve(
             user_message=user_message,
             last_math_result=last_math_result,
         )
@@ -80,7 +88,7 @@ class ChatbotOrchestrator:
             )
 
         try:
-            result = self.mathematical_agent.execute(
+            result = self._mathematical_agent.execute(
                 expression=expression,
             )
 
@@ -101,7 +109,7 @@ class ChatbotOrchestrator:
             }
 
         except ValueError as exc:
-            error_response = self.writer_agent.generate_error_response(
+            error_response = self._writer_agent.generate_error_response(
                 user_message=user_message,
                 error=str(exc),
             )
@@ -115,7 +123,7 @@ class ChatbotOrchestrator:
                 ),
             }
 
-        response = self.writer_agent.generate_response(
+        response = self._writer_agent.generate_response(
             result=result,
             language=math_context.language,
         )
