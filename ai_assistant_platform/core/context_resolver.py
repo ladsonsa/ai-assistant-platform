@@ -11,6 +11,10 @@ from ai_assistant_platform.prompts.context_prompt import (
     build_context_prompt,
 )
 
+from ai_assistant_platform.core.expression_extractor import (
+    ExpressionExtractor,
+)
+
 
 class ContextResolver:
     """
@@ -36,6 +40,7 @@ class ContextResolver:
         llm_service: LLMService,
     ) -> None:
         self.llm_service = llm_service
+        self._expression_extractor = ExpressionExtractor()
 
     def resolve(
         self,
@@ -43,7 +48,7 @@ class ContextResolver:
         last_math_result: float | None,
     ) -> MathContext | None:
 
-        expression = self._extract_expression(
+        expression = self._expression_extractor.extract(
             user_message,
         )
 
