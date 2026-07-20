@@ -1,12 +1,15 @@
-# ai_assistant_platform/agents/mathematical_agent.py
-
-from ai_assistant_platform.tools.expression_evaluator import (
-    evaluate_expression,
+from ai_assistant_platform.tools.interfaces.expression_evaluator import (
+    IExpressionEvaluator,
 )
 
 
 class MathematicalAgent:
-    """An agent responsible for executing mathematical tasks using an injected evaluator."""
+    """An agent responsible for executing mathematical tasks using an injected evaluator.
+
+    Attributes:
+        _evaluator (IExpressionEvaluator): The expression evaluator instance
+            used to evaluate mathematical expressions.
+    """
 
     def __init__(
         self,
@@ -24,25 +27,14 @@ class MathematicalAgent:
         self,
         expression: str,
     ) -> float:
-        """
-        Evaluate a mathematical expression.
+        """Executes the evaluation of a given mathematical expression string.
 
         Args:
-            expression:
-                Canonical mathematical expression.
+            expression (str): The mathematical expression to be evaluated.
 
         Returns:
-            Result of the evaluated expression.
-
-        Raises:
-            ValueError:
-                If the expression contains unsupported syntax.
-
-            ZeroDivisionError:
-                If a division by zero is attempted.
+            float: The calculated result of the expression.
         """
-
-        return evaluate_expression(
+        return self._evaluator.evaluate(
             expression=expression,
         )
-
