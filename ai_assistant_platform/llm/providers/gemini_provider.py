@@ -20,6 +20,10 @@ class GeminiProvider(BaseLLMProvider):
     model_name = GEMINI_MODEL
 
     def __init__(self) -> None:
+
+        if not GEMINI_API_KEY:
+            raise RuntimeError("GEMINI_API_KEY is not configured.")
+
         self.client = genai.Client(
             api_key=GEMINI_API_KEY,
         )
@@ -32,72 +36,76 @@ class GeminiProvider(BaseLLMProvider):
         Generate a response using the Gemini API.
         """
 
-        prompt = self._build_prompt(
-            messages,
-        )
+        try:
+            prompt = self._build_prompt(
+                messages,
+            )
 
-        response = self.client.models.generate_content(
-            model=self.model_name,
-            contents=prompt,
-            config={
-                "temperature": TEMPERATURE,
-                "top_p": TOP_P,
-                "max_output_tokens": MAX_TOKENS,
-            },
-        )
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt,
+                config={
+                    "temperature": TEMPERATURE,
+                    "top_p": TOP_P,
+                    "max_output_tokens": MAX_TOKENS,
+                },
+            )
 
-        usage = getattr(
-            response,
-            "usage_metadata",
-            None,
-        )
-
-        return {
-            "content": getattr(
+            usage = getattr(
                 response,
-                "text",
-                "",
-            ),
-            "usage": {
-                "provider": "gemini",
-                "model": self.model_name,
-                "temperature": TEMPERATURE,
-                "max_tokens": MAX_TOKENS,
-                "top_p": TOP_P,
-                "input_tokens": (
-                    getattr(
-                        usage,
-                        "prompt_token_count",
-                        None,
-                    )
-                    if usage
-                    else None
-                ),
-                "output_tokens": (
-                    getattr(
-                        usage,
-                        "candidates_token_count",
-                        None,
-                    )
-                    if usage
-                    else None
-                ),
-                "total_tokens": (
-                    getattr(
-                        usage,
-                        "total_token_count",
-                        None,
-                    )
-                    if usage
-                    else None
-                ),
-                "finish_reason": getattr(
+                "usage_metadata",
+                None,
+            )
+
+            return {
+                "content": getattr(
                     response,
-                    "finish_reason",
-                    None,
+                    "text",
+                    "",
                 ),
-            },
-        }
+                "usage": {
+                    "provider": "gemini",
+                    "model": self.model_name,
+                    "temperature": TEMPERATURE,
+                    "max_tokens": MAX_TOKENS,
+                    "top_p": TOP_P,
+                    "input_tokens": (
+                        getattr(
+                            usage,
+                            "prompt_token_count",
+                            None,
+                        )
+                        if usage
+                        else None
+                    ),
+                    "output_tokens": (
+                        getattr(
+                            usage,
+                            "candidates_token_count",
+                            None,
+                        )
+                        if usage
+                        else None
+                    ),
+                    "total_tokens": (
+                        getattr(
+                            usage,
+                            "total_token_count",
+                            None,
+                        )
+                        if usage
+                        else None
+                    ),
+                    "finish_reason": getattr(
+                        response,
+                        "finish_reason",
+                        None,
+                    ),
+                },
+            }
+
+        except Exception as exc:
+            raise RuntimeError(f"Gemini provider error: {exc}") from exc
 
     def _build_prompt(
         self,
