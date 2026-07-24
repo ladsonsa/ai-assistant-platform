@@ -25,7 +25,12 @@ class OpenAIProvider(BaseLLMProvider):
     model_name = OPENAI_MODEL
 
     def __init__(self) -> None:
-
+        
+        if not OPENAI_API_KEY:
+            raise RuntimeError(
+                "OPENAI_API_KEY is not configured."
+            )
+            
         self.client = OpenAI(
             api_key=OPENAI_API_KEY,
         )
