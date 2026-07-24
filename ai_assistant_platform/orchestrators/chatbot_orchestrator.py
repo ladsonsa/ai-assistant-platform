@@ -123,6 +123,13 @@ class ChatbotOrchestrator:
                 ),
             }
 
+        except RuntimeError as exc:
+            return {
+                "response": str(exc),
+                "metadata": {},
+                "usage": {},
+            }
+
         response = self._writer_agent.generate_response(
             result=result,
             language=math_context.language,
