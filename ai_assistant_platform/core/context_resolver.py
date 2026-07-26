@@ -22,25 +22,27 @@ class ContextResolver:
     Resolves user messages into structured mathematical context.
     """
 
-    SUPPORTED_LANGUAGES = {
-        "pt",
-        "en",
-        "es",
-        "fr",
-        "de",
-        "ja",
-        "it",
-        "ru",
-        "zh",
-        "ko",
-        "ar",
-    }
+    SUPPORTED_LANGUAGES = frozenset(
+        {
+            "pt",
+            "en",
+            "es",
+            "fr",
+            "de",
+            "ja",
+            "it",
+            "ru",
+            "zh",
+            "ko",
+            "ar",
+        }
+    )
 
     def __init__(
         self,
         llm_service: LLMService,
     ) -> None:
-        self.llm_service = llm_service
+        self._llm_service = llm_service
         logger.info("ContextResolver initialized")
 
     def resolve(
@@ -197,7 +199,7 @@ class ContextResolver:
             last_math_result is not None,
         )
 
-        response = self.llm_service.generate_response(
+        response = self._llm_service.generate_response(
             messages=[
                 {
                     "role": "system",
