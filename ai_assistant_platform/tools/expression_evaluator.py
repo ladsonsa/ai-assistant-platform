@@ -1,7 +1,11 @@
-# ai_assistant_platform/tools/expression_evaluator.py
-
 import ast
 import operator
+
+from ai_assistant_platform.config.logging_config import (
+    get_logger,
+)
+
+logger = get_logger(__name__)
 
 _OPERATORS = {
     ast.Add: operator.add,
@@ -16,42 +20,41 @@ _OPERATORS = {
 def evaluate_expression(
     expression: str,
 ) -> float:
-    """
-    Safely evaluate a mathematical expression.
-
-    Supported:
-        - Parentheses
-        - +, -, *, /
-        - Unary + and -
-
-    Raises:
-        ValueError:
-            If the expression contains unsupported syntax.
-
-        ZeroDivisionError:
-            If division by zero occurs.
-    """
+    logger.debug(
+        "Evaluating mathematical expression expression=%s",
+        expression,
+    )
 
     try:
         tree = ast.parse(
             expression,
             mode="eval",
         )
-
     except SyntaxError as exc:
+        logger.warning(
+            "Invalid mathematical expression syntax expression=%s",
+            expression,
+        )
         raise ValueError("Invalid mathematical expression.") from exc
 
-    return float(
+    result = float(
         _evaluate_node(
             tree.body,
         )
     )
 
+    logger.debug(
+        "Expression evaluated successfully expression=%s result=%s",
+        expression,
+        result,
+    )
+
+    return result
+
 
 def _evaluate_node(
     node: ast.AST,
 ) -> float:
-
     if isinstance(
         node,
         ast.Constant,
@@ -63,6 +66,10 @@ def _evaluate_node(
                 float,
             ),
         ):
+            logger.warning(
+                "Unsupported constant detected node_type=%s",
+                type(node).__name__,
+            )
             raise ValueError("Only numeric constants are allowed.")
 
         return float(node.value)
@@ -74,6 +81,10 @@ def _evaluate_node(
         operator_type = type(node.op)
 
         if operator_type not in _OPERATORS:
+            logger.warning(
+                "Unsupported unary operator operator=%s",
+                operator_type.__name__,
+            )
             raise ValueError("Unsupported unary operator.")
 
         return _OPERATORS[operator_type](
@@ -89,6 +100,10 @@ def _evaluate_node(
         operator_type = type(node.op)
 
         if operator_type not in _OPERATORS:
+            logger.warning(
+                "Unsupported binary operator operator=%s",
+                operator_type.__name__,
+            )
             raise ValueError("Unsupported operator.")
 
         left = _evaluate_node(
@@ -100,6 +115,7 @@ def _evaluate_node(
         )
 
         if operator_type is ast.Div and right == 0:
+            logger.warning("Division by zero detected")
             raise ZeroDivisionError("Division by zero.")
 
         return _OPERATORS[operator_type](
@@ -107,4 +123,8 @@ def _evaluate_node(
             right,
         )
 
+    logger.warning(
+        "Invalid AST node detected node_type=%s",
+        type(node).__name__,
+    )
     raise ValueError("Invalid mathematical expression.")

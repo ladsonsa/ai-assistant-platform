@@ -2,7 +2,6 @@ import re
 
 
 class ExpressionExtractor:
-
     def extract(
         self,
         text: str,
@@ -51,11 +50,7 @@ class ExpressionExtractor:
             return None
 
         expression = (
-            match.group()
-            .strip()
-            .replace("\n", "")
-            .replace("\r", "")
-            .replace(" ", "")
+            match.group().strip().replace("\n", "").replace("\r", "").replace(" ", "")
         )
 
         if (

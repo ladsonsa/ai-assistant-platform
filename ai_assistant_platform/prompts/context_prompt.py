@@ -1,14 +1,19 @@
-# ai_assistant_platform/prompts/context_prompt.py
+from ai_assistant_platform.config.logging_config import (
+    get_logger,
+)
+
+logger = get_logger(__name__)
 
 
 def build_context_prompt(
     user_message: str,
     last_math_result: float | None,
 ) -> str:
-    """
-    Build the prompt used to convert natural language into a mathematical
-    expression.
-    """
+    logger.debug(
+        "Building context prompt has_previous_result=%s message_length=%d",
+        last_math_result is not None,
+        len(user_message),
+    )
 
     return f"""
 You are a highly restricted, sandboxed internal API parsing micro-service. Your EXCLUSIVE objective is to extract mathematical intent from user payloads.

@@ -1,17 +1,22 @@
 import streamlit as st
 
+from ai_assistant_platform.config.logging_config import (
+    get_logger,
+)
+
+logger = get_logger(__name__)
+
 
 def initialize_chat_memory() -> None:
-    """
-    Initialize the chat history stored in the Streamlit session state.
-
-    This function creates the ``messages`` collection if it does not
-    already exist, ensuring that the conversation history is available
-    throughout the user's session.
-    """
-
     if "messages" not in st.session_state:
         st.session_state.messages = []
+        logger.info("Chat memory initialized")
+        return
+
+    logger.debug(
+        "Chat memory already initialized size=%d",
+        len(st.session_state.messages),
+    )
 
 
 def add_message(
@@ -19,44 +24,56 @@ def add_message(
     content: str,
     metadata: dict | None = None,
 ) -> None:
-    """
-    Add a message to the conversation history.
-
-    Args:
-        role:
-            Role of the message author (e.g. ``"user"`` or
-            ``"assistant"``).
-
-        content:
-            Message content to store.
-
-        metadata:
-            Optional metadata associated with the message, such as
-            mathematical results or operation details. Defaults to an
-            empty dictionary.
-    """
+    message = {
+        "role": role,
+        "content": content,
+        "metadata": metadata or {},
+    }
 
     st.session_state.messages.append(
-        {
-            "role": role,
-            "content": content,
-            "metadata": metadata or {},
-        }
+        message,
+    )
+
+    logger.debug(
+        "Message added role=%s has_metadata=%s history_size=%d",
+        role,
+        bool(metadata),
+        len(st.session_state.messages),
     )
 
 
 def get_chat_history() -> list[dict]:
-    """
-    Retrieve the current conversation history.
+    history = st.session_state.get(
+        "messages",
+        [],
+    )
 
-    Returns:
-        A list of message dictionaries stored in the Streamlit session
-        state. Each message contains the following fields:
+    logger.debug(
+        "Chat history requested size=%d",
+        len(history),
+    )
 
-        - ``role``: Message author.
-        - ``content``: Message text.
-        - ``metadata``: Optional contextual information associated with
-          the message.
-    """
+    return history
 
-    return st.session_state.messages
+
+def get_last_math_result() -> float | None:
+    for message in reversed(
+        st.session_state.get(
+            "messages",
+            [],
+        )
+    ):
+        metadata = message.get(
+            "metadata",
+            {},
+        )
+
+        if "math_result" in metadata:
+            logger.debug(
+                "Last math result found value=%s",
+                metadata["math_result"],
+            )
+            return metadata["math_result"]
+
+    logger.debug("No math result found in chat history")
+    return None

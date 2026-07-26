@@ -1,40 +1,34 @@
-from ai_assistant_platform.tools.interfaces.expression_evaluator import (
-    IExpressionEvaluator,
+from ai_assistant_platform.config.logging_config import (
+    get_logger,
 )
+from ai_assistant_platform.tools.expression_evaluator import (
+    evaluate_expression,
+)
+
+logger = get_logger(__name__)
 
 
 class MathematicalAgent:
-    """An agent responsible for executing mathematical tasks using an injected evaluator.
-
-    Attributes:
-        _evaluator (IExpressionEvaluator): The expression evaluator instance
-            used to evaluate mathematical expressions.
     """
-
-    def __init__(
-        self,
-        evaluator: IExpressionEvaluator,
-    ) -> None:
-        """Initializes the MathematicalAgent with an expression evaluator.
-
-        Args:
-            evaluator (IExpressionEvaluator): The concrete evaluator instance
-                used to process mathematical expressions.
-        """
-        self._evaluator = evaluator
+    Executes validated mathematical expressions.
+    """
 
     def execute(
         self,
         expression: str,
     ) -> float:
-        """Executes the evaluation of a given mathematical expression string.
+        logger.info(
+            "Executing mathematical expression expression=%s",
+            expression,
+        )
 
-        Args:
-            expression (str): The mathematical expression to be evaluated.
-
-        Returns:
-            float: The calculated result of the expression.
-        """
-        return self._evaluator.evaluate(
+        result = evaluate_expression(
             expression=expression,
         )
+
+        logger.info(
+            "Mathematical expression executed result=%s",
+            result,
+        )
+
+        return result
