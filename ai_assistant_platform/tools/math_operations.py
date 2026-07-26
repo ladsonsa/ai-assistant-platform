@@ -1,38 +1,19 @@
-# ai_assistant_platform/tools/math_operations.py
-
-from ai_assistant_platform.tools.expression_evaluator import (
-    evaluate_expression,
-)
-
-
-def evaluate(
-    expression: str,
-) -> float:
-    """
-    Evaluate a complete mathematical expression.
-
-    Args:
-        expression:
-            Mathematical expression containing numbers,
-            parentheses and the operators +, -, * and /.
-
-    Returns:
-        The numerical result of the evaluated expression.
-    """
-
-    return evaluate_expression(
-        expression=expression,
-    )
-
-
 def add(
     number_1: float,
     number_2: float,
 ) -> float:
-    """
-    Add two numbers.
-    """
+    """Performs addition of two floating-point numbers.
 
+    Args:
+        number_1 (float): The first addend.
+        number_2 (float): The second addend.
+
+    Returns:
+        float: The sum of number_1 and number_2.
+
+    Raises:
+        None
+    """
     return number_1 + number_2
 
 
@@ -40,10 +21,18 @@ def subtract(
     number_1: float,
     number_2: float,
 ) -> float:
-    """
-    Subtract the second number from the first.
-    """
+    """Performs subtraction of two floating-point numbers.
 
+    Args:
+        number_1 (float): The minuend.
+        number_2 (float): The subtrahend.
+
+    Returns:
+        float: The difference resulting from subtracting number_2 from number_1.
+
+    Raises:
+        None
+    """
     return number_1 - number_2
 
 
@@ -51,10 +40,18 @@ def multiply(
     number_1: float,
     number_2: float,
 ) -> float:
-    """
-    Multiply two numbers.
-    """
+    """Performs multiplication of two floating-point numbers.
 
+    Args:
+        number_1 (float): The multiplicand.
+        number_2 (float): The multiplier.
+
+    Returns:
+        float: The product of number_1 and number_2.
+
+    Raises:
+        None
+    """
     return number_1 * number_2
 
 
@@ -62,14 +59,18 @@ def divide(
     number_1: float,
     number_2: float,
 ) -> float:
-    """
-    Divide the first number by the second.
+    """Performs division of two floating-point numbers.
+
+    Args:
+        number_1 (float): The dividend.
+        number_2 (float): The divisor.
+
+    Returns:
+        float: The quotient resulting from dividing number_1 by number_2.
 
     Raises:
-        ZeroDivisionError:
-            If the divisor is zero.
+        ZeroDivisionError: If number_2 is zero.
     """
-
     if number_2 == 0:
         raise ZeroDivisionError("Division by zero.")
 

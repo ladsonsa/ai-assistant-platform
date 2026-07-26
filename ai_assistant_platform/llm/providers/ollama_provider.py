@@ -1,5 +1,8 @@
 from ollama import Client
 
+from ai_assistant_platform.config.logging_config import (
+    get_logger,
+)
 from ai_assistant_platform.config.settings import (
     MAX_TOKENS,
     OLLAMA_MODEL,
@@ -10,6 +13,8 @@ from ai_assistant_platform.llm.providers.base_provider import (
     BaseLLMProvider,
 )
 
+logger = get_logger(__name__)
+
 
 class OllamaProvider(BaseLLMProvider):
     """
@@ -19,6 +24,10 @@ class OllamaProvider(BaseLLMProvider):
     model_name = OLLAMA_MODEL
 
     def __init__(self) -> None:
+        logger.info(
+            "Initializing Ollama provider model=%s",
+            self.model_name,
+        )
         self.client = Client()
 
     def generate_response(
@@ -29,8 +38,13 @@ class OllamaProvider(BaseLLMProvider):
         Generate a response using the local Ollama server.
         """
 
-        try:
+        logger.debug(
+            "Sending request to Ollama model=%s messages=%d",
+            self.model_name,
+            len(messages),
+        )
 
+        try:
             response = self.client.chat(
                 model=self.model_name,
                 messages=messages,
@@ -49,7 +63,7 @@ class OllamaProvider(BaseLLMProvider):
                 "eval_count",
             )
 
-            return {
+            result = {
                 "content": response["message"]["content"],
                 "usage": {
                     "provider": "ollama",
@@ -75,5 +89,17 @@ class OllamaProvider(BaseLLMProvider):
                 },
             }
 
+            logger.info(
+                "Ollama response received model=%s finish_reason=%s",
+                self.model_name,
+                result["usage"]["finish_reason"],
+            )
+
+            return result
+
         except Exception as exc:
+            logger.exception(
+                "Ollama provider error model=%s",
+                self.model_name,
+            )
             raise RuntimeError(f"Ollama provider error: {exc}") from exc

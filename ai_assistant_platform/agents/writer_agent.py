@@ -1,9 +1,14 @@
+from ai_assistant_platform.config.logging_config import (
+    get_logger,
+)
 from ai_assistant_platform.llm.llm_service import (
     LLMService,
 )
 from ai_assistant_platform.prompts.writer_prompt import (
     build_writer_prompt,
 )
+
+logger = get_logger(__name__)
 
 
 class WriterAgent:
@@ -15,7 +20,8 @@ class WriterAgent:
         self,
         llm_service: LLMService,
     ) -> None:
-        self.llm_service = llm_service
+        self._llm_service = llm_service
+        logger.info("WriterAgent initialized")
 
     def generate_response(
         self,
@@ -26,18 +32,26 @@ class WriterAgent:
         Generate a localized response for a mathematical result.
         """
 
+        formatted_result = self._format_result(
+            result,
+        )
+
+        logger.debug(
+            "Generating user response result=%s language=%s",
+            formatted_result,
+            language,
+        )
+
         prompt = build_writer_prompt(
-            result=self._format_result(
-                result,
-            ),
+            result=formatted_result,
             language=language,
         )
 
-        return self.llm_service.generate_response(
+        response = self._llm_service.generate_response(
             messages=[
                 {
                     "role": "system",
-                    "content": ("You are a multilingual mathematical assistant."),
+                    "content": "You are a multilingual mathematical assistant.",
                 },
                 {
                     "role": "user",
@@ -45,6 +59,13 @@ class WriterAgent:
                 },
             ],
         )
+
+        logger.info(
+            "User response generated language=%s",
+            language,
+        )
+
+        return response
 
     def generate_error_response(
         self,
@@ -54,6 +75,11 @@ class WriterAgent:
         """
         Generate a localized error message.
         """
+
+        logger.warning(
+            "Generating localized error response error=%s",
+            error,
+        )
 
         prompt = f"""
 User message:
@@ -70,7 +96,7 @@ Rules:
 - Return only the final answer.
 """
 
-        return self.llm_service.generate_response(
+        response = self._llm_service.generate_response(
             messages=[
                 {
                     "role": "system",
@@ -84,6 +110,10 @@ Rules:
                 },
             ],
         )
+
+        logger.info("Localized error response generated")
+
+        return response
 
     def _format_result(
         self,

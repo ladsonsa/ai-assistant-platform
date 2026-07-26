@@ -1,10 +1,31 @@
+from ai_assistant_platform.config.logging_config import (
+    get_logger,
+)
+
+logger = get_logger(__name__)
+
+
 def build_writer_prompt(
     result: str,
     language: str,
 ) -> str:
+    """Builds a structured LLM prompt to convert a mathematical result into a concise natural language sentence.
+
+    Args:
+        result (str): The mathematical calculation result to be presented.
+        language (str): The target language code for the response sentence.
+
+    Returns:
+        str: The fully constructed prompt string containing instructions, examples, and metadata.
+
+    Raises:
+        None
     """
-    Build the prompt used by WriterAgent.
-    """
+    logger.debug(
+        "Building writer prompt language=%s result_length=%d",
+        language,
+        len(result),
+    )
 
     return f"""
 You are a multilingual mathematical assistant.
@@ -71,7 +92,7 @@ Answer:
 Language: ko
 Result: 9
 Answer:
-결과는 9입니다.
+결과는 9입니다。
 
 Language: ru
 Result: 9
@@ -81,7 +102,7 @@ Answer:
 Language: ar
 Result: 9
 Answer:
-الناتج هو 9.
+الناتج هو 9。
 
 Now generate the answer.
 

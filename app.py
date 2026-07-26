@@ -1,7 +1,8 @@
-import traceback
-
 import streamlit as st
 
+from ai_assistant_platform.config.logging_config import (
+    get_logger,
+)
 from ai_assistant_platform.config.settings import (
     FREQUENCY_PENALTY,
     GEMINI_MODEL,
@@ -13,20 +14,19 @@ from ai_assistant_platform.config.settings import (
     TEMPERATURE,
     TOP_P,
 )
-
 from ai_assistant_platform.llm.llm_service import (
     LLMService,
 )
-
 from ai_assistant_platform.memory.chat_memory import (
     add_message,
     get_chat_history,
     initialize_chat_memory,
 )
-
 from ai_assistant_platform.orchestrators.chatbot_orchestrator import (
     ChatbotOrchestrator,
 )
+
+logger = get_logger("ai_assistant_platform.app")
 
 PROVIDERS = {
     "openai": OPENAI_MODEL,
@@ -36,33 +36,41 @@ PROVIDERS = {
 
 
 def main() -> None:
-    """
-    Streamlit application entry point.
-    """
-
     st.set_page_config(
         page_title="AI Math Assistant",
         page_icon="🧮",
     )
+
+    logger.info("Streamlit application started")
 
     st.title("🧮 AI Math Assistant")
 
     initialize_chat_memory()
 
     with st.sidebar:
-
         st.header("LLM Provider")
+
+        provider_options = list(PROVIDERS.keys())
+        default_provider = (
+            PROVIDER_NAME if PROVIDER_NAME in PROVIDERS else provider_options[0]
+        )
+
+        if default_provider != PROVIDER_NAME:
+            logger.warning(
+                "Unsupported PROVIDER_NAME=%s. Falling back to %s.",
+                PROVIDER_NAME,
+                default_provider,
+            )
 
         provider = st.selectbox(
             "Select provider",
-            options=list(PROVIDERS.keys()),
-            index=list(PROVIDERS.keys()).index(PROVIDER_NAME),
+            options=provider_options,
+            index=provider_options.index(default_provider),
         )
 
         provider_info = st.empty()
 
     try:
-
         llm_service = LLMService(
             provider_name=provider,
         )
@@ -71,17 +79,17 @@ def main() -> None:
             llm_service=llm_service,
         )
 
-    except RuntimeError as exc:
+        logger.info("Orchestrator initialized with provider=%s", provider)
 
-        st.error(str(exc))
+    except RuntimeError:
+        logger.exception("Failed to initialize the selected provider.")
+        st.error("Não foi possível inicializar o provedor LLM selecionado.")
         st.stop()
 
     model = PROVIDERS[provider]
-
     chat_history = get_chat_history()
 
     if chat_history:
-
         render_provider_info(
             placeholder=provider_info,
             provider=provider,
@@ -89,7 +97,6 @@ def main() -> None:
             usage=None,
         )
     else:
-
         provider_info.empty()
 
     render_history()
@@ -99,6 +106,8 @@ def main() -> None:
     if not user_input:
         return
 
+    logger.info("Received user message")
+
     add_message(
         role="user",
         content=user_input,
@@ -107,60 +116,41 @@ def main() -> None:
     with st.chat_message("user"):
         st.markdown(user_input)
 
-    response = None
+    response = ""
     metadata = {}
     usage = {}
 
-    try:
-
-        result = orchestrator.process_message(
-            user_message=user_input,
-            conversation_history=get_chat_history(),
-        )
-
-        response = result.get(
-            "response",
-            "",
-        )
-
-        metadata = result.get(
-            "metadata",
-            {},
-        )
-
-        usage = result.get(
-            "usage",
-            {},
-        )
-
-    except RuntimeError as exc:
-
-        response = str(exc)
-
-    except Exception:
-
-        traceback.print_exc()
-
-        response = "Ocorreu um erro inesperado ao " "processar sua solicitação."
-
     with st.chat_message("assistant"):
-
-        with st.spinner(""):
+        with st.spinner("Processing..."):
             try:
-
                 result = orchestrator.process_message(
                     user_message=user_input,
                     conversation_history=get_chat_history(),
                 )
 
-                response = result.get("response", "")
-                metadata = result.get("metadata", {})
-                usage = result.get("usage", {})
+                response = result.get(
+                    "response",
+                    "",
+                )
+
+                metadata = result.get(
+                    "metadata",
+                    {},
+                )
+
+                usage = result.get(
+                    "usage",
+                    {},
+                )
+
+                logger.info("Message processed successfully.")
 
             except RuntimeError as exc:
+                logger.exception("Runtime error while processing user message.")
                 response = str(exc)
+
             except Exception:
-                traceback.print_exc()
+                logger.exception("Unexpected error while processing user message.")
                 response = "Ocorreu um erro inesperado ao processar sua solicitação."
 
         st.markdown(response)
@@ -170,7 +160,7 @@ def main() -> None:
         content=response,
         metadata=metadata,
     )
-    
+
     render_provider_info(
         placeholder=provider_info,
         provider=provider,
@@ -180,12 +170,7 @@ def main() -> None:
 
 
 def render_history() -> None:
-    """
-    Render previous conversation messages.
-    """
-
     for message in get_chat_history():
-
         with st.chat_message(
             message["role"],
         ):
@@ -200,18 +185,12 @@ def render_provider_info(
     model: str,
     usage: dict | None,
 ) -> None:
-    """
-    Render current LLM configuration and usage data.
-    """
-
     with placeholder.container():
-
         st.subheader(
             "Current Provider",
         )
 
         st.write(f"**Provider:** {provider}")
-
         st.write(f"**Model:** {model}")
 
         st.divider()
@@ -221,16 +200,12 @@ def render_provider_info(
         )
 
         st.write(f"**Temperature:** {TEMPERATURE}")
-
         st.write(f"**Max Tokens:** {MAX_TOKENS}")
-
         st.write(f"**Top P:** {TOP_P}")
 
         if provider == "openai":
-
-            st.write(f"**Frequency Penalty:** " f"{FREQUENCY_PENALTY}")
-
-            st.write(f"**Presence Penalty:** " f"{PRESENCE_PENALTY}")
+            st.write(f"**Frequency Penalty:** {FREQUENCY_PENALTY}")
+            st.write(f"**Presence Penalty:** {PRESENCE_PENALTY}")
 
         if not usage:
             return
@@ -250,7 +225,6 @@ def render_provider_info(
         }
 
         for label, key in fields.items():
-
             value = usage.get(
                 key,
             )

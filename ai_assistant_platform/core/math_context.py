@@ -1,5 +1,3 @@
-# ai_assistant_platform/core/math_context.py
-
 from dataclasses import dataclass
 
 
