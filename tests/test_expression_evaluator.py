@@ -1,7 +1,7 @@
 import pytest
 
 from ai_assistant_platform.tools.expression_evaluator import (
-    evaluate_expression,
+    ExpressionEvaluator,
 )
 
 
@@ -18,7 +18,7 @@ def test_basic_operations(
     expression: str,
     expected: float,
 ) -> None:
-    assert evaluate_expression(expression) == expected
+    assert ExpressionEvaluator().evaluate(expression) == expected
 
 
 @pytest.mark.parametrize(
@@ -34,7 +34,7 @@ def test_operator_precedence(
     expression: str,
     expected: float,
 ) -> None:
-    assert evaluate_expression(expression) == expected
+    assert ExpressionEvaluator().evaluate(expression) == expected
 
 
 @pytest.mark.parametrize(
@@ -50,7 +50,7 @@ def test_parentheses(
     expression: str,
     expected: float,
 ) -> None:
-    assert evaluate_expression(expression) == expected
+    assert ExpressionEvaluator().evaluate(expression) == expected
 
 
 @pytest.mark.parametrize(
@@ -67,7 +67,7 @@ def test_unary_operations(
     expression: str,
     expected: float,
 ) -> None:
-    assert evaluate_expression(expression) == expected
+    assert ExpressionEvaluator().evaluate(expression) == expected
 
 
 @pytest.mark.parametrize(
@@ -83,12 +83,12 @@ def test_decimal_numbers(
     expression: str,
     expected: float,
 ) -> None:
-    assert evaluate_expression(expression) == expected
+    assert ExpressionEvaluator().evaluate(expression) == expected
 
 
 def test_division_by_zero() -> None:
     with pytest.raises(ZeroDivisionError):
-        evaluate_expression("10 / 0")
+        ExpressionEvaluator().evaluate("10 / 0")
 
 
 @pytest.mark.parametrize(
@@ -109,7 +109,7 @@ def test_invalid_expressions(
     expression: str,
 ) -> None:
     with pytest.raises(ValueError):
-        evaluate_expression(expression)
+        ExpressionEvaluator().evaluate(expression)
 
 
 @pytest.mark.parametrize(
@@ -124,4 +124,4 @@ def test_unsupported_operators(
     expression: str,
 ) -> None:
     with pytest.raises(ValueError):
-        evaluate_expression(expression)
+        ExpressionEvaluator().evaluate(expression)

@@ -1,45 +1,3 @@
-from ai_assistant_platform.config.logging_config import (
-    get_logger,
-)
-from ai_assistant_platform.tools.expression_evaluator import (
-    evaluate_expression,
-)
-
-logger = get_logger(__name__)
-
-
-def evaluate(
-    expression: str,
-) -> float:
-    """Evaluates a complete mathematical expression string using the expression evaluator tool.
-
-    Args:
-        expression (str): The mathematical expression to be evaluated.
-
-    Returns:
-        float: The numerical result of the evaluation.
-
-    Raises:
-        ValueError: If the expression is invalid.
-        ZeroDivisionError: If a division by zero occurs during evaluation.
-    """
-    logger.debug(
-        "Evaluating complete expression expression=%s",
-        expression,
-    )
-
-    result = evaluate_expression(
-        expression=expression,
-    )
-
-    logger.info(
-        "Expression evaluated result=%s",
-        result,
-    )
-
-    return result
-
-
 def add(
     number_1: float,
     number_2: float,
@@ -56,14 +14,7 @@ def add(
     Raises:
         None
     """
-    result = number_1 + number_2
-    logger.debug(
-        "Addition executed left=%s right=%s result=%s",
-        number_1,
-        number_2,
-        result,
-    )
-    return result
+    return number_1 + number_2
 
 
 def subtract(
@@ -82,14 +33,7 @@ def subtract(
     Raises:
         None
     """
-    result = number_1 - number_2
-    logger.debug(
-        "Subtraction executed left=%s right=%s result=%s",
-        number_1,
-        number_2,
-        result,
-    )
-    return result
+    return number_1 - number_2
 
 
 def multiply(
@@ -108,14 +52,7 @@ def multiply(
     Raises:
         None
     """
-    result = number_1 * number_2
-    logger.debug(
-        "Multiplication executed left=%s right=%s result=%s",
-        number_1,
-        number_2,
-        result,
-    )
-    return result
+    return number_1 * number_2
 
 
 def divide(
@@ -135,18 +72,6 @@ def divide(
         ZeroDivisionError: If number_2 is zero.
     """
     if number_2 == 0:
-        logger.warning(
-            "Division by zero attempted left=%s right=%s",
-            number_1,
-            number_2,
-        )
         raise ZeroDivisionError("Division by zero.")
 
-    result = number_1 / number_2
-    logger.debug(
-        "Division executed left=%s right=%s result=%s",
-        number_1,
-        number_2,
-        result,
-    )
-    return result
+    return number_1 / number_2

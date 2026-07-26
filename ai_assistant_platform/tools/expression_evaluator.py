@@ -4,6 +4,9 @@ import operator
 from ai_assistant_platform.config.logging_config import (
     get_logger,
 )
+from ai_assistant_platform.tools.interfaces.expression_evaluator import (
+    IExpressionEvaluator,
+)
 
 logger = get_logger(__name__)
 
@@ -17,138 +20,128 @@ _OPERATORS = {
 }
 
 
-def evaluate_expression(
-    expression: str,
-) -> float:
-    """Safely evaluates a mathematical expression string using Abstract Syntax Trees.
+class ExpressionEvaluator(IExpressionEvaluator):
+    """Evaluates mathematical expression strings safely using Abstract Syntax Trees.
 
-    Args:
-        expression (str): The mathematical expression string to evaluate.
-
-    Returns:
-        float: The numerical result of the evaluated expression.
-
-    Raises:
-        ValueError: If the expression has invalid syntax, contains unsupported constants, or uses unsupported operators.
-        ZeroDivisionError: If the expression attempts to divide by zero.
+    Attributes:
+        None
     """
-    logger.debug(
-        "Evaluating mathematical expression expression=%s",
-        expression,
-    )
 
-    try:
-        tree = ast.parse(
-            expression,
-            mode="eval",
-        )
-    except SyntaxError as exc:
-        logger.warning(
-            "Invalid mathematical expression syntax expression=%s",
+    def evaluate(
+        self,
+        expression: str,
+    ) -> float:
+        """Evaluates a given mathematical expression string and returns the floating-point result.
+
+        Args:
+            expression (str): The mathematical expression string to evaluate.
+
+        Returns:
+            float: The numerical result of the evaluated expression.
+
+        Raises:
+            ValueError: If the expression contains syntax errors or invalid elements.
+            ZeroDivisionError: If the evaluation attempts to divide by zero.
+        """
+        logger.debug(
+            "Evaluating expression=%s",
             expression,
         )
-        raise ValueError("Invalid mathematical expression.") from exc
 
-    result = float(
-        _evaluate_node(
-            tree.body,
+        try:
+            tree = ast.parse(
+                expression,
+                mode="eval",
+            )
+        except SyntaxError as exc:
+            logger.warning(
+                "Invalid expression=%s",
+                expression,
+            )
+            raise ValueError("Invalid mathematical expression.") from exc
+
+        result = float(
+            self._evaluate_node(
+                tree.body,
+            )
         )
-    )
 
-    logger.debug(
-        "Expression evaluated successfully expression=%s result=%s",
-        expression,
-        result,
-    )
+        logger.debug(
+            "Expression evaluated result=%s",
+            result,
+        )
 
-    return result
+        return result
 
+    def _evaluate_node(
+        self,
+        node: ast.AST,
+    ) -> float:
+        """Recursively evaluates an abstract syntax tree node for mathematical operations.
 
-def _evaluate_node(
-    node: ast.AST,
-) -> float:
-    """Recursively evaluates an AST node representing a mathematical operation or value.
+        Args:
+            node (ast.AST): The AST node to evaluate.
 
-    Args:
-        node (ast.AST): The current abstract syntax tree node being evaluated.
+        Returns:
+            float: The numerical value resulting from the node evaluation.
 
-    Returns:
-        float: The evaluated numerical value of the node.
-
-    Raises:
-        ValueError: If an unsupported constant, unary operator, binary operator, or invalid node is encountered.
-        ZeroDivisionError: If a division by zero occurs during binary operation evaluation.
-    """
-    if isinstance(
-        node,
-        ast.Constant,
-    ):
-        if not isinstance(
-            node.value,
-            (
-                int,
-                float,
-            ),
+        Raises:
+            ValueError: If an unsupported constant, unary operator, binary operator, or node type is encountered.
+            ZeroDivisionError: If a division by zero occurs.
+        """
+        if isinstance(
+            node,
+            ast.Constant,
         ):
-            logger.warning(
-                "Unsupported constant detected node_type=%s",
-                type(node).__name__,
+            if not isinstance(
+                node.value,
+                (
+                    int,
+                    float,
+                ),
+            ):
+                raise ValueError("Only numeric constants are allowed.")
+
+            return float(node.value)
+
+        if isinstance(
+            node,
+            ast.UnaryOp,
+        ):
+            operator_type = type(node.op)
+
+            if operator_type not in _OPERATORS:
+                raise ValueError("Unsupported unary operator.")
+
+            return _OPERATORS[operator_type](
+                self._evaluate_node(
+                    node.operand,
+                )
             )
-            raise ValueError("Only numeric constants are allowed.")
 
-        return float(node.value)
+        if isinstance(
+            node,
+            ast.BinOp,
+        ):
+            operator_type = type(node.op)
 
-    if isinstance(
-        node,
-        ast.UnaryOp,
-    ):
-        operator_type = type(node.op)
+            if operator_type not in _OPERATORS:
+                raise ValueError("Unsupported operator.")
 
-        if operator_type not in _OPERATORS:
-            logger.warning(
-                "Unsupported unary operator operator=%s",
-                operator_type.__name__,
+            left = self._evaluate_node(
+                node.left,
             )
-            raise ValueError("Unsupported unary operator.")
 
-        return _OPERATORS[operator_type](
-            _evaluate_node(
-                node.operand,
+            right = self._evaluate_node(
+                node.right,
             )
-        )
 
-    if isinstance(
-        node,
-        ast.BinOp,
-    ):
-        operator_type = type(node.op)
+            if operator_type is ast.Div and right == 0:
+                raise ZeroDivisionError("Division by zero.")
 
-        if operator_type not in _OPERATORS:
-            logger.warning(
-                "Unsupported binary operator operator=%s",
-                operator_type.__name__,
+            return _OPERATORS[operator_type](
+                left,
+                right,
             )
-            raise ValueError("Unsupported operator.")
 
-        left = _evaluate_node(
-            node.left,
-        )
-
-        right = _evaluate_node(
-            node.right,
-        )
-
-        if operator_type is ast.Div and right == 0:
-            logger.warning("Division by zero detected")
-            raise ZeroDivisionError("Division by zero.")
-
-        return _OPERATORS[operator_type](
-            left,
-            right,
-        )
-
-    logger.warning(
-        "Invalid AST node detected node_type=%s",
-        type(node).__name__,
-    )
-    raise ValueError("Invalid mathematical expression.")
+        raise ValueError("Invalid mathematical expression.")
