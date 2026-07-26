@@ -20,7 +20,7 @@ class WriterAgent:
         self,
         llm_service: LLMService,
     ) -> None:
-        self.llm_service = llm_service
+        self._llm_service = llm_service
         logger.info("WriterAgent initialized")
 
     def generate_response(
@@ -47,7 +47,7 @@ class WriterAgent:
             language=language,
         )
 
-        response = self.llm_service.generate_response(
+        response = self._llm_service.generate_response(
             messages=[
                 {
                     "role": "system",
@@ -96,7 +96,7 @@ Rules:
 - Return only the final answer.
 """
 
-        response = self.llm_service.generate_response(
+        response = self._llm_service.generate_response(
             messages=[
                 {
                     "role": "system",
