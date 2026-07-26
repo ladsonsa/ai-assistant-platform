@@ -18,8 +18,10 @@ logger = get_logger(__name__)
 
 
 class ContextResolver:
-    """
-    Resolves user messages into structured mathematical context.
+    """Resolves user messages into structured mathematical context.
+
+    Attributes:
+        _llm_service (LLMService): The service used to generate responses from the LLM.
     """
 
     SUPPORTED_LANGUAGES = frozenset(
@@ -42,6 +44,17 @@ class ContextResolver:
         self,
         llm_service: LLMService,
     ) -> None:
+        """Initializes the ContextResolver with an LLM service.
+
+        Args:
+            llm_service (LLMService): The LLM service instance to be used for resolving complex queries.
+
+        Returns:
+            None
+
+        Raises:
+            None
+        """
         self._llm_service = llm_service
         logger.info("ContextResolver initialized")
 
@@ -50,6 +63,19 @@ class ContextResolver:
         user_message: str,
         last_math_result: float | None,
     ) -> MathContext | None:
+        """Resolves a user message and optional previous result into a MathContext object.
+
+        Args:
+            user_message (str): The message provided by the user.
+            last_math_result (float | None): The previous mathematical calculation result, if any.
+
+        Returns:
+            MathContext | None: A structured MathContext object if resolution is successful,
+                or None if the message cannot be resolved as a math context.
+
+        Raises:
+            None
+        """
         logger.debug(
             "Resolving math context message_length=%d has_previous_result=%s",
             len(user_message),
@@ -142,6 +168,17 @@ class ContextResolver:
         self,
         text: str,
     ) -> str | None:
+        """Extracts a mathematical expression directly from the text string using heuristics.
+
+        Args:
+            text (str): The input text to extract the expression from.
+
+        Returns:
+            str | None: The extracted expression string, or None if extraction fails.
+
+        Raises:
+            None
+        """
         cleaned = text.lower()
 
         for prefix in (
@@ -194,6 +231,18 @@ class ContextResolver:
         user_message: str,
         last_math_result: float | None,
     ) -> dict | None:
+        """Calls the LLM service to interpret the user message and extract mathematical context.
+
+        Args:
+            user_message (str): The message provided by the user.
+            last_math_result (float | None): The previous mathematical result, if available.
+
+        Returns:
+            dict | None: A dictionary containing the parsed LLM response payload, or None if parsing fails.
+
+        Raises:
+            None
+        """
         logger.debug(
             "Calling LLM for math interpretation has_previous_result=%s",
             last_math_result is not None,
@@ -233,6 +282,17 @@ class ContextResolver:
         self,
         text: str,
     ) -> bool:
+        """Checks if a text message is a potential candidate for a mathematical query.
+
+        Args:
+            text (str): The input text to evaluate.
+
+        Returns:
+            bool: True if the text contains mathematical keywords or operators, False otherwise.
+
+        Raises:
+            None
+        """
         lowered = text.lower()
 
         if re.search(
@@ -283,6 +343,17 @@ class ContextResolver:
         self,
         text: str,
     ) -> str:
+        """Detects the language of the given text based on keyword heuristics.
+
+        Args:
+            text (str): The input text to analyze.
+
+        Returns:
+            str: The detected language code (e.g., 'pt', 'en', 'es').
+
+        Raises:
+            None
+        """
         lowered = text.lower()
 
         if any(
@@ -328,6 +399,17 @@ class ContextResolver:
         self,
         language: str | None,
     ) -> str:
+        """Normalizes and validates a given language string against supported languages.
+
+        Args:
+            language (str | None): The language string to normalize.
+
+        Returns:
+            str: The normalized language code.
+
+        Raises:
+            None
+        """
         if not language:
             logger.debug("Language not provided. Falling back to en")
             return "en"

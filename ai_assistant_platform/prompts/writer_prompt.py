@@ -9,6 +9,18 @@ def build_writer_prompt(
     result: str,
     language: str,
 ) -> str:
+    """Builds a structured LLM prompt to convert a mathematical result into a concise natural language sentence.
+
+    Args:
+        result (str): The mathematical calculation result to be presented.
+        language (str): The target language code for the response sentence.
+
+    Returns:
+        str: The fully constructed prompt string containing instructions, examples, and metadata.
+
+    Raises:
+        None
+    """
     logger.debug(
         "Building writer prompt language=%s result_length=%d",
         language,

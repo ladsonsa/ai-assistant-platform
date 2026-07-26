@@ -9,6 +9,18 @@ def build_context_prompt(
     user_message: str,
     last_math_result: float | None,
 ) -> str:
+    """Builds a structured LLM prompt to extract mathematical context and intent from a user message.
+
+    Args:
+        user_message (str): The current message provided by the user.
+        last_math_result (float | None): The result of the previous mathematical calculation, if any.
+
+    Returns:
+        str: The fully constructed prompt string containing instructions, examples, and context metadata.
+
+    Raises:
+        None
+    """
     logger.debug(
         "Building context prompt has_previous_result=%s message_length=%d",
         last_math_result is not None,

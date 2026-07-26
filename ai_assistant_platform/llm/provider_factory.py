@@ -8,8 +8,10 @@ logger = get_logger(__name__)
 
 
 class ProviderFactory:
-    """
-    Factory responsible for creating language model providers.
+    """Factory responsible for creating language model providers.
+
+    Attributes:
+        _PROVIDERS (dict): A mapping of provider names to their corresponding module paths and class names.
     """
 
     _PROVIDERS = {
@@ -32,8 +34,18 @@ class ProviderFactory:
         cls,
         provider_name: str,
     ):
-        """
-        Create and return a provider instance.
+        """Create and return a provider instance based on the given provider name.
+
+        Args:
+            provider_name (str): The name of the provider to instantiate.
+
+        Returns:
+            Any: An instance of the requested LLM provider class.
+
+        Raises:
+            ValueError: If the requested provider name is not supported.
+            RuntimeError: If the provider's required package is missing, the class cannot be found,
+                or initialization fails for any other reason.
         """
 
         provider_name = provider_name.lower()

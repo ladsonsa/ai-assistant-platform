@@ -20,6 +20,18 @@ _OPERATORS = {
 def evaluate_expression(
     expression: str,
 ) -> float:
+    """Safely evaluates a mathematical expression string using Abstract Syntax Trees.
+
+    Args:
+        expression (str): The mathematical expression string to evaluate.
+
+    Returns:
+        float: The numerical result of the evaluated expression.
+
+    Raises:
+        ValueError: If the expression has invalid syntax, contains unsupported constants, or uses unsupported operators.
+        ZeroDivisionError: If the expression attempts to divide by zero.
+    """
     logger.debug(
         "Evaluating mathematical expression expression=%s",
         expression,
@@ -55,6 +67,18 @@ def evaluate_expression(
 def _evaluate_node(
     node: ast.AST,
 ) -> float:
+    """Recursively evaluates an AST node representing a mathematical operation or value.
+
+    Args:
+        node (ast.AST): The current abstract syntax tree node being evaluated.
+
+    Returns:
+        float: The evaluated numerical value of the node.
+
+    Raises:
+        ValueError: If an unsupported constant, unary operator, binary operator, or invalid node is encountered.
+        ZeroDivisionError: If a division by zero occurs during binary operation evaluation.
+    """
     if isinstance(
         node,
         ast.Constant,

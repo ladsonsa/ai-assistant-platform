@@ -21,8 +21,7 @@ logger = get_logger(__name__)
 
 
 class ChatbotOrchestrator:
-    """
-    Coordinates the complete chatbot execution pipeline.
+    """Coordinates the complete chatbot execution pipeline.
 
     Flow:
 
@@ -35,12 +34,29 @@ class ChatbotOrchestrator:
         Writer Agent
             ↓
         Response
+
+    Attributes:
+        _llm_service (LLMService): The LLM service instance used for context resolution and response generation.
+        _context_resolver (ContextResolver): Resolves user messages into structured math contexts.
+        _mathematical_agent (MathematicalAgent): Executes mathematical evaluations.
+        _writer_agent (WriterAgent): Generates human-readable responses and error explanations.
     """
 
     def __init__(
         self,
         llm_service: LLMService | None = None,
     ) -> None:
+        """Initializes the ChatbotOrchestrator with required services and agents.
+
+        Args:
+            llm_service (LLMService | None): Optional LLM service instance. Defaults to None.
+
+        Returns:
+            None
+
+        Raises:
+            None
+        """
         self._llm_service = llm_service if llm_service is not None else LLMService()
 
         logger.info(
@@ -69,6 +85,18 @@ class ChatbotOrchestrator:
         user_message: str,
         conversation_history: list[dict],
     ) -> dict:
+        """Processes an incoming user message through the orchestrator pipeline.
+
+        Args:
+            user_message (str): The message sent by the user.
+            conversation_history (list[dict]): The historical messages of the conversation.
+
+        Returns:
+            dict: A dictionary containing the final response, metadata, and token usage statistics.
+
+        Raises:
+            None
+        """
         logger.info(
             "Processing message length=%d history_size=%d",
             len(user_message),
@@ -192,6 +220,17 @@ class ChatbotOrchestrator:
         self,
         conversation_history: list[dict],
     ) -> float | None:
+        """Extracts the most recent mathematical result from the conversation history.
+
+        Args:
+            conversation_history (list[dict]): The historical messages of the conversation.
+
+        Returns:
+            float | None: The last mathematical result value as a float, or None if not found.
+
+        Raises:
+            None
+        """
         for message in reversed(
             conversation_history,
         ):
@@ -208,6 +247,17 @@ class ChatbotOrchestrator:
     def _refusal_message(
         self,
     ) -> str:
+        """Returns a standard refusal message for non-mathematical queries.
+
+        Args:
+            None
+
+        Returns:
+            str: The refusal message string.
+
+        Raises:
+            None
+        """
         return (
             "Posso ajudar apenas com matemática básica, "
             "incluindo operações, expressões com parênteses "

@@ -12,14 +12,28 @@ logger = get_logger(__name__)
 
 
 class LLMService:
-    """
-    Facade responsible for communication with the configured LLM provider.
+    """Facade responsible for communication with the configured LLM provider.
+
+    Attributes:
+        provider_name (str): The name of the LLM provider being used.
+        provider: The underlying provider instance initialized via ProviderFactory.
     """
 
     def __init__(
         self,
         provider_name: str | None = None,
     ) -> None:
+        """Initializes the LLMService with a specific or default LLM provider.
+
+        Args:
+            provider_name (str | None): The name of the LLM provider to use. Defaults to None.
+
+        Returns:
+            None
+
+        Raises:
+            RuntimeError: If the specified provider fails to initialize.
+        """
         self.provider_name = provider_name or PROVIDER_NAME
 
         logger.info(
@@ -48,8 +62,16 @@ class LLMService:
     def model_name(
         self,
     ) -> str:
-        """
-        Return the current model name.
+        """Return the current model name.
+
+        Args:
+            None
+
+        Returns:
+            str: The model name of the underlying provider, or 'Unknown' if not found.
+
+        Raises:
+            None
         """
 
         model = getattr(
@@ -70,14 +92,21 @@ class LLMService:
         self,
         messages: list[dict[str, str]],
     ) -> dict:
-        """
-        Generate a response using the configured provider.
+        """Generate a response using the configured provider.
+
+        Args:
+            messages (list[dict[str, str]]): A list of message dictionaries representing the conversation history.
 
         Returns:
-            {
-                "content": str,
-                "usage": dict
-            }
+            dict: A dictionary containing the generated content and usage statistics.
+                Format:
+                {
+                    "content": str,
+                    "usage": dict
+                }
+
+        Raises:
+            RuntimeError: If the provider fails while generating the response.
         """
 
         logger.info(
@@ -119,8 +148,16 @@ class LLMService:
     def get_provider_info(
         self,
     ) -> dict:
-        """
-        Return provider metadata.
+        """Return provider metadata.
+
+        Args:
+            None
+
+        Returns:
+            dict: A dictionary containing provider metadata such as provider name and model name.
+
+        Raises:
+            None
         """
 
         info = {

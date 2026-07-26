@@ -8,6 +8,17 @@ logger = get_logger(__name__)
 
 
 def initialize_chat_memory() -> None:
+    """Initializes the chat memory in the Streamlit session state if it does not exist.
+
+    Args:
+        None
+
+    Returns:
+        None
+
+    Raises:
+        None
+    """
     if "messages" not in st.session_state:
         st.session_state.messages = []
         logger.info("Chat memory initialized")
@@ -24,6 +35,19 @@ def add_message(
     content: str,
     metadata: dict | None = None,
 ) -> None:
+    """Adds a new message with an optional metadata dictionary to the chat history.
+
+    Args:
+        role (str): The role of the message sender (e.g., 'user', 'assistant').
+        content (str): The content of the message.
+        metadata (dict | None): Optional metadata associated with the message. Defaults to None.
+
+    Returns:
+        None
+
+    Raises:
+        None
+    """
     message = {
         "role": role,
         "content": content,
@@ -43,6 +67,17 @@ def add_message(
 
 
 def get_chat_history() -> list[dict]:
+    """Retrieves the complete chat history from the session state.
+
+    Args:
+        None
+
+    Returns:
+        list[dict]: A list of message dictionaries representing the chat history.
+
+    Raises:
+        None
+    """
     history = st.session_state.get(
         "messages",
         [],
@@ -57,6 +92,17 @@ def get_chat_history() -> list[dict]:
 
 
 def get_last_math_result() -> float | None:
+    """Finds and returns the most recent mathematical calculation result from the chat history metadata.
+
+    Args:
+        None
+
+    Returns:
+        float | None: The latest math result value as a float, or None if no result is found.
+
+    Raises:
+        None
+    """
     for message in reversed(
         st.session_state.get(
             "messages",

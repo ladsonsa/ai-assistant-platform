@@ -17,6 +17,18 @@ _CONFIGURED_ATTR = "_ai_math_assistant_logging_configured"
 
 
 def _resolve_level(level_name: str) -> int:
+    """Resolves a string log level name to its corresponding logging constant.
+
+    Args:
+        level_name (str): The name of the log level (e.g., 'DEBUG', 'INFO').
+
+    Returns:
+        int: The logging level integer constant, or logging.INFO as a fallback
+            if the level name is invalid.
+
+    Raises:
+        None
+    """
     level = getattr(logging, level_name.upper(), None)
     if isinstance(level, int):
         return level
@@ -24,6 +36,17 @@ def _resolve_level(level_name: str) -> int:
 
 
 def _log_file_path() -> Path:
+    """Determines and creates the file path for the log file.
+
+    Args:
+        None
+
+    Returns:
+        Path: The absolute path to the log file.
+
+    Raises:
+        None
+    """
     project_root = Path(__file__).resolve().parents[2]
     log_dir = project_root / LOG_DIR
     log_dir.mkdir(parents=True, exist_ok=True)
@@ -31,6 +54,17 @@ def _log_file_path() -> Path:
 
 
 def configure_logging() -> logging.Logger:
+    """Configures and returns the root application logger with file and optional console handlers.
+
+    Args:
+        None
+
+    Returns:
+        logging.Logger: The configured application logger instance.
+
+    Raises:
+        None
+    """
     logger = logging.getLogger(_LOGGER_NAME)
 
     if getattr(logger, _CONFIGURED_ATTR, False):
@@ -67,5 +101,16 @@ def configure_logging() -> logging.Logger:
 
 
 def get_logger(name: str) -> logging.Logger:
+    """Retrieves a configured logger instance with the specified name.
+
+    Args:
+        name (str): The name of the logger to retrieve.
+
+    Returns:
+        logging.Logger: The requested logger instance.
+
+    Raises:
+        None
+    """
     configure_logging()
     return logging.getLogger(name)
