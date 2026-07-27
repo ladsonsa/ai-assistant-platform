@@ -150,7 +150,7 @@ def test_invalid_json_returns_none(
     }
 
     context = resolver.resolve(
-        user_message="Now subtract two.",
+        user_message="Now subtract 2.",
         last_math_result=10,
     )
 

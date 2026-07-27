@@ -187,6 +187,8 @@ class ContextResolver:
             "calcule:",
             "resolve",
             "resolva",
+            "now",
+            "agora",
         ):
             cleaned = cleaned.replace(prefix, "")
 
@@ -196,13 +198,28 @@ class ContextResolver:
                 "$result",
             )
 
+        if cleaned.startswith(("subtract", "subtraia", "menos", "-")):
+            match = re.search(r"\d+(?:\.\d+)?", cleaned)
+            if match:
+                return f"$result - {match.group()}"
+
+        if cleaned.startswith(("add", "plus", "somar", "adicionar", "mais", "+")):
+            match = re.search(r"\d+(?:\.\d+)?", cleaned)
+            if match:
+                return f"$result + {match.group()}"
+
         text_without_result = cleaned.replace("$result", "")
+        if re.search(r"[a-z]", text_without_result):
+            logger.debug("Direct extraction rejected because of alphabetic text")
+            return None
+        text_without_result = cleaned.replace("$result", "")
+
         if re.search(r"[a-z]", text_without_result):
             logger.debug("Direct extraction rejected because of alphabetic text")
             return None
 
         match = re.search(
-            r"[\d\.\+\-\*\/\(\)\s\$]+",
+            r"(?:\$result|[\d\.\+\-\*\/\(\)\s])+",
             cleaned,
         )
 
@@ -307,6 +324,12 @@ class ContextResolver:
             "calcule",
             "calcular",
             "soma",
+            "calculate",
+            "sum",
+            "add",
+            "subtract",
+            "multiply",
+            "divide",
             "somar",
             "subtraia",
             "subitrair",
@@ -317,17 +340,21 @@ class ContextResolver:
             "multiplique",
             "dividir",
             "divida",
-            "divide",
             "plus",
             "minus",
             "times",
             "multiply",
-            "divide",
             "resultado",
             "anterior",
             "caixas",
             "itens",
             "perdi",
+            "double",
+            "twice",
+            "half",
+            "dobrar",
+            "dobre",
+            "metade",
         )
 
         is_candidate = any(word in lowered for word in math_words)

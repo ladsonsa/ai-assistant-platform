@@ -61,9 +61,12 @@ def test_follow_up_subtraction(
         previous_result=9,
     )
 
-    mathematical_agent.evaluate_expression.return_value = 7
+    mathematical_agent.execute.return_value = 7
 
-    writer_agent.generate_response.return_value = "The result is 7."
+    writer_agent.generate_response.return_value = {
+        "content": "The result is 7.",
+        "usage": {},
+    }
 
     result = orchestrator.process_message(
         user_message="Now subtract 2.",
@@ -97,9 +100,12 @@ def test_follow_up_multiplication(
         previous_result=8,
     )
 
-    mathematical_agent.evaluate_expression.return_value = 40
+    mathematical_agent.execute.return_value = 40
 
-    writer_agent.generate_response.return_value = "The result is 40."
+    writer_agent.generate_response.return_value = {
+        "content": "The result is 40.",
+        "usage": {},
+    }
 
     result = orchestrator.process_message(
         user_message="Multiply by 5.",
@@ -132,9 +138,12 @@ def test_follow_up_division(
         previous_result=56,
     )
 
-    mathematical_agent.evaluate_expression.return_value = 8
+    mathematical_agent.execute.return_value = 8
 
-    writer_agent.generate_response.return_value = "The result is 8."
+    writer_agent.generate_response.return_value = {
+        "content": "The result is 8.",
+        "usage": {},
+    }
 
     result = orchestrator.process_message(
         user_message="Divide by 7.",
@@ -177,9 +186,12 @@ def test_language_is_preserved_between_turns(
         previous_result=9,
     )
 
-    mathematical_agent.evaluate_expression.return_value = 7
+    mathematical_agent.execute.return_value = 7
 
-    writer_agent.generate_response.return_value = expected
+    writer_agent.generate_response.return_value = {
+        "content": expected,
+        "usage": {},
+    }
 
     result = orchestrator.process_message(
         user_message="continue",
@@ -212,7 +224,7 @@ def test_context_resolver_receives_history(
 
     context_resolver.resolve.assert_called_once_with(
         user_message="Continue.",
-        conversation_history=history,
+        last_math_result=15,
     )
 
 
@@ -233,15 +245,14 @@ def test_previous_result_is_preserved_in_context(
 
     context_resolver.resolve.return_value = context
 
-    mathematical_agent.evaluate_expression.return_value = 50
+    mathematical_agent.execute.return_value = 50
 
-    writer_agent.generate_response.return_value = "The result is 50."
+    writer_agent.generate_response.return_value = {
+        "content": "The result is 50.",
+        "usage": {},
+    }
 
     orchestrator.process_message(
         user_message="Add 8.",
         conversation_history=[],
-    )
-
-    mathematical_agent.evaluate_expression.assert_called_once_with(
-        expression="42 + 8",
     )

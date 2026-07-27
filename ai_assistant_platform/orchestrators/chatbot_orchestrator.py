@@ -44,12 +44,29 @@ class ChatbotOrchestrator:
 
     def __init__(
         self,
+        mathematical_agent: MathematicalAgent | None = None,
+        writer_agent: WriterAgent | None = None,
+        context_resolver: ContextResolver | None = None,
         llm_service: LLMService | None = None,
     ) -> None:
-        """Initializes the ChatbotOrchestrator with required services and agents.
+        """Initializes the ChatbotOrchestrator.
 
         Args:
-            llm_service (LLMService | None): Optional LLM service instance. Defaults to None.
+            mathematical_agent (MathematicalAgent | None):
+                Optional MathematicalAgent instance. If not provided,
+                a default MathematicalAgent is created.
+
+            writer_agent (WriterAgent | None):
+                Optional WriterAgent instance. If not provided,
+                a default WriterAgent is created.
+
+            context_resolver (ContextResolver | None):
+                Optional ContextResolver instance. If not provided,
+                a default ContextResolver is created.
+
+            llm_service (LLMService | None):
+                Optional LLMService instance. If not provided,
+                a default LLMService is created.
 
         Returns:
             None
@@ -57,25 +74,36 @@ class ChatbotOrchestrator:
         Raises:
             None
         """
-        self._llm_service = llm_service if llm_service is not None else LLMService()
+
+        self._llm_service = llm_service or LLMService()
 
         logger.info(
             "Initializing ChatbotOrchestrator with provider=%s",
             self._llm_service.provider_name,
         )
 
-        self._context_resolver = ContextResolver(
-            llm_service=self._llm_service,
+        self._context_resolver = (
+            context_resolver
+            if context_resolver is not None
+            else ContextResolver(
+                llm_service=self._llm_service,
+            )
         )
 
-        evaluator = ExpressionEvaluator()
-
-        self._mathematical_agent = MathematicalAgent(
-            evaluator=evaluator,
+        self._mathematical_agent = (
+            mathematical_agent
+            if mathematical_agent is not None
+            else MathematicalAgent(
+                evaluator=ExpressionEvaluator(),
+            )
         )
 
-        self._writer_agent = WriterAgent(
-            llm_service=self._llm_service,
+        self._writer_agent = (
+            writer_agent
+            if writer_agent is not None
+            else WriterAgent(
+                llm_service=self._llm_service,
+            )
         )
 
         logger.info("ChatbotOrchestrator initialized successfully")
@@ -142,7 +170,7 @@ class ChatbotOrchestrator:
 
         except ZeroDivisionError:
             logger.warning(
-                "Division by zero detected expression=%s",
+                "Division by zero detected expression = %s",
                 expression,
             )
 
@@ -258,8 +286,4 @@ class ChatbotOrchestrator:
         Raises:
             None
         """
-        return (
-            "Posso ajudar apenas com matemática básica, "
-            "incluindo operações, expressões com parênteses "
-            "e problemas matemáticos simples."
-        )
+        return "Desculpe, só consigo responder a perguntas matemáticas."

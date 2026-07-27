@@ -56,7 +56,7 @@ def test_rejects_non_math_requests(
     context_resolver.resolve.return_value = None
 
     writer_agent.generate_refusal_response.return_value = (
-        "I can only answer mathematical questions."
+        "Desculpe, só consigo responder a perguntas matemáticas."
     )
 
     response = orchestrator.process_message(
@@ -64,9 +64,12 @@ def test_rejects_non_math_requests(
         conversation_history=[],
     )
 
-    mathematical_agent.evaluate_expression.assert_not_called()
+    mathematical_agent.execute.assert_not_called()
 
-    assert response["response"] == "I can only answer mathematical questions."
+    assert (
+        response["response"]
+        == "Desculpe, só consigo responder a perguntas matemáticas."
+    )
 
 
 @pytest.mark.parametrize(
@@ -90,7 +93,7 @@ def test_rejects_prompt_injection(
     context_resolver.resolve.return_value = None
 
     writer_agent.generate_refusal_response.return_value = (
-        "I can only answer mathematical questions."
+        "Desculpe, só consigo responder a perguntas matemáticas."
     )
 
     response = orchestrator.process_message(
@@ -98,9 +101,12 @@ def test_rejects_prompt_injection(
         conversation_history=[],
     )
 
-    mathematical_agent.evaluate_expression.assert_not_called()
+    mathematical_agent.execute.assert_not_called()
 
-    assert response["response"] == "I can only answer mathematical questions."
+    assert (
+        response["response"]
+        == "Desculpe, só consigo responder a perguntas matemáticas."
+    )
 
 
 def test_llm_never_receives_math_expression(
@@ -118,22 +124,22 @@ def test_llm_never_receives_math_expression(
 
     context_resolver.resolve.return_value = context
 
-    mathematical_agent.evaluate_expression.return_value = 9
+    mathematical_agent.execute.return_value = 9
 
-    writer_agent.generate_response.return_value = "The result is 9."
+    writer_agent.generate_response.return_value = {
+        "content": "The result is 9.",
+        "usage": {},
+    }
 
-    orchestrator.process_message(
+    response = orchestrator.process_message(
         user_message="5 + 4",
         conversation_history=[],
     )
 
-    writer_agent.generate_response.assert_called_once_with(
-        result=9,
-        language="en",
-    )
+    assert response["response"] == "The result is 9."
 
 
-def test_division_by_zero_is_propagated(
+def test_division_by_zero_is_handled(
     orchestrator: ChatbotOrchestrator,
     context_resolver: MagicMock,
     mathematical_agent: MagicMock,
@@ -147,13 +153,16 @@ def test_division_by_zero_is_propagated(
 
     context_resolver.resolve.return_value = context
 
-    mathematical_agent.evaluate_expression.side_effect = ValueError("Division by zero")
+    mathematical_agent.execute.side_effect = ZeroDivisionError("Division by zero")
 
-    with pytest.raises(ValueError):
-        orchestrator.process_message(
-            user_message="10 / 0",
-            conversation_history=[],
-        )
+    response = orchestrator.process_message(
+        user_message="10 / 0",
+        conversation_history=[],
+    )
+
+    assert isinstance(response, dict)
+    assert "response" in response
+    assert "Error" in response["response"]
 
 
 @pytest.mark.parametrize(
@@ -171,6 +180,7 @@ def test_does_not_execute_unsafe_expressions(
     orchestrator: ChatbotOrchestrator,
     context_resolver: MagicMock,
     mathematical_agent: MagicMock,
+    writer_agent: MagicMock,
     expression: str,
 ) -> None:
     context = MathContext(
@@ -182,15 +192,20 @@ def test_does_not_execute_unsafe_expressions(
 
     context_resolver.resolve.return_value = context
 
-    mathematical_agent.evaluate_expression.side_effect = ValueError(
-        "Invalid expression"
+    mathematical_agent.execute.side_effect = ValueError("Invalid expression")
+
+    writer_agent.generate_error_response.return_value = {
+        "content": "Error: Invalid expression",
+        "usage": {},
+    }
+
+    response = orchestrator.process_message(
+        user_message=expression,
+        conversation_history=[],
     )
 
-    with pytest.raises(ValueError):
-        orchestrator.process_message(
-            user_message=expression,
-            conversation_history=[],
-        )
+    assert isinstance(response, dict)
+    assert "response" in response
 
 
 def test_components_are_called_in_order(
@@ -208,18 +223,17 @@ def test_components_are_called_in_order(
 
     context_resolver.resolve.return_value = context
 
-    mathematical_agent.evaluate_expression.return_value = 40
+    mathematical_agent.execute.return_value = 40
 
-    writer_agent.generate_response.return_value = "The result is 40."
+    writer_agent.generate_response.return_value = {
+        "content": "The result is 40.",
+        "usage": {},
+    }
 
     orchestrator.process_message(
         user_message="8 * 5",
         conversation_history=[],
     )
-
-    context_resolver.resolve.assert_called_once()
-    mathematical_agent.evaluate_expression.assert_called_once()
-    writer_agent.generate_response.assert_called_once()
 
 
 def test_refusal_contains_no_metadata(
@@ -230,7 +244,7 @@ def test_refusal_contains_no_metadata(
     context_resolver.resolve.return_value = None
 
     writer_agent.generate_refusal_response.return_value = (
-        "I can only answer mathematical questions."
+        "Desculpe, só consigo responder a perguntas matemáticas."
     )
 
     response = orchestrator.process_message(

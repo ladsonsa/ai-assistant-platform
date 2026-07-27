@@ -65,7 +65,12 @@ class WriterAgent:
             language,
         )
 
-        return response
+        return {
+            "content": response.get(
+                "content", ""
+            ),  # ou response["content"] dependendo do seu serviço de LLM
+            "usage": response.get("usage", {}),
+        }
 
     def generate_error_response(
         self,
