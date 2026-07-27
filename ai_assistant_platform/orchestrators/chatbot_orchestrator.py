@@ -170,7 +170,7 @@ class ChatbotOrchestrator:
 
         except ZeroDivisionError:
             logger.warning(
-                "Division by zero detected expression=%s",
+                "Division by zero detected expression = %s",
                 expression,
             )
 
@@ -286,6 +286,4 @@ class ChatbotOrchestrator:
         Raises:
             None
         """
-        return (
-            "Desculpe, só consigo responder a perguntas matemáticas."
-        )
+        return "Desculpe, só consigo responder a perguntas matemáticas."

@@ -66,7 +66,10 @@ def test_rejects_non_math_requests(
 
     mathematical_agent.execute.assert_not_called()
 
-    assert response["response"] == "Desculpe, só consigo responder a perguntas matemáticas."
+    assert (
+        response["response"]
+        == "Desculpe, só consigo responder a perguntas matemáticas."
+    )
 
 
 @pytest.mark.parametrize(
@@ -100,7 +103,10 @@ def test_rejects_prompt_injection(
 
     mathematical_agent.execute.assert_not_called()
 
-    assert response["response"] == "Desculpe, só consigo responder a perguntas matemáticas."
+    assert (
+        response["response"]
+        == "Desculpe, só consigo responder a perguntas matemáticas."
+    )
 
 
 def test_llm_never_receives_math_expression(
@@ -119,16 +125,16 @@ def test_llm_never_receives_math_expression(
     context_resolver.resolve.return_value = context
 
     mathematical_agent.execute.return_value = 9
-    
+
     writer_agent.generate_response.return_value = {
         "content": "The result is 9.",
         "usage": {},
     }
 
     response = orchestrator.process_message(
-            user_message="5 + 4",
-            conversation_history=[],
-        )
+        user_message="5 + 4",
+        conversation_history=[],
+    )
 
     assert response["response"] == "The result is 9."
 
@@ -186,10 +192,8 @@ def test_does_not_execute_unsafe_expressions(
 
     context_resolver.resolve.return_value = context
 
-    mathematical_agent.execute.side_effect = ValueError(
-        "Invalid expression"
-    )
-    
+    mathematical_agent.execute.side_effect = ValueError("Invalid expression")
+
     writer_agent.generate_error_response.return_value = {
         "content": "Error: Invalid expression",
         "usage": {},

@@ -197,7 +197,7 @@ class ContextResolver:
                 "resultado",
                 "$result",
             )
-            
+
         if cleaned.startswith(("subtract", "subtraia", "menos", "-")):
             match = re.search(r"\d+(?:\.\d+)?", cleaned)
             if match:

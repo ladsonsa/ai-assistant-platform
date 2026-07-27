@@ -48,9 +48,9 @@ def test_generate_response(
     )
 
     expected = {
-            "content": response,
-            "usage": {},
-        }
+        "content": response,
+        "usage": {},
+    }
     assert generated == expected
 
 
@@ -77,13 +77,12 @@ def test_generate_error_response(
         user_message=message,
         error="Division by zero",
     )
-    
+
     expected = {
         "content": message,
         "usage": {},
     }
     assert response == expected
-
 
 
 def test_llm_called_once(
@@ -119,7 +118,7 @@ def test_returns_llm_content(
         language="en",
     )
 
-    expected = {'content': 'Custom response.', 'usage': {}}
+    expected = {"content": "Custom response.", "usage": {}}
     assert response == expected
 
 
