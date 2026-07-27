@@ -8,34 +8,6 @@ from ai_assistant_platform.orchestrators.chatbot_orchestrator import (
 )
 
 
-@pytest.fixture
-def context_resolver() -> MagicMock:
-    return MagicMock()
-
-
-@pytest.fixture
-def mathematical_agent() -> MagicMock:
-    return MagicMock()
-
-
-@pytest.fixture
-def writer_agent() -> MagicMock:
-    return MagicMock()
-
-
-@pytest.fixture
-def orchestrator(
-    context_resolver: MagicMock,
-    mathematical_agent: MagicMock,
-    writer_agent: MagicMock,
-) -> ChatbotOrchestrator:
-    return ChatbotOrchestrator(
-        context_resolver=context_resolver,
-        mathematical_agent=mathematical_agent,
-        writer_agent=writer_agent,
-    )
-
-
 def test_process_math_message(
     orchestrator: ChatbotOrchestrator,
     context_resolver: MagicMock,
@@ -50,7 +22,7 @@ def test_process_math_message(
     )
 
     context_resolver.resolve.return_value = context
-    mathematical_agent.evaluate_expression.return_value = 4
+    mathematical_agent.execute.return_value = 4
     writer_agent.generate_response.return_value = "The result is 4."
 
     result = orchestrator.process_message(
@@ -63,7 +35,7 @@ def test_process_math_message(
         conversation_history=[],
     )
 
-    mathematical_agent.evaluate_expression.assert_called_once_with(
+    mathematical_agent.execute.assert_called_once_with(
         expression="2 + 2",
     )
 
@@ -95,7 +67,7 @@ def test_returns_refusal_when_context_is_none(
         conversation_history=[],
     )
 
-    mathematical_agent.evaluate_expression.assert_not_called()
+    mathematical_agent.execute.assert_not_called()
 
     writer_agent.generate_refusal_response.assert_called_once()
 
@@ -117,7 +89,7 @@ def test_propagates_math_exception(
 
     context_resolver.resolve.return_value = context
 
-    mathematical_agent.evaluate_expression.side_effect = ValueError("Division by zero")
+    mathematical_agent.execute.side_effect = ValueError("Division by zero")
 
     with pytest.raises(ValueError):
         orchestrator.process_message(
@@ -141,7 +113,7 @@ def test_calls_components_once(
 
     context_resolver.resolve.return_value = context
 
-    mathematical_agent.evaluate_expression.return_value = 25
+    mathematical_agent.execute.return_value = 25
 
     writer_agent.generate_response.return_value = "The result is 25."
 
@@ -151,7 +123,7 @@ def test_calls_components_once(
     )
 
     assert context_resolver.resolve.call_count == 1
-    assert mathematical_agent.evaluate_expression.call_count == 1
+    assert mathematical_agent.execute.call_count == 1
     assert writer_agent.generate_response.call_count == 1
 
 
@@ -181,7 +153,7 @@ def test_process_multiple_operations(
 
     context_resolver.resolve.return_value = context
 
-    mathematical_agent.evaluate_expression.return_value = result
+    mathematical_agent.execute.return_value = result
 
     writer_agent.generate_response.return_value = f"The result is {result}."
 
@@ -209,7 +181,7 @@ def test_preserves_language(
 
     context_resolver.resolve.return_value = context
 
-    mathematical_agent.evaluate_expression.return_value = 9
+    mathematical_agent.execute.return_value = 9
 
     writer_agent.generate_response.return_value = "O resultado é 9."
 
@@ -227,7 +199,7 @@ def test_preserves_language(
 def test_returns_complete_metadata(
     orchestrator: ChatbotOrchestrator,
     context_resolver: MagicMock,
-    mathematical_agent: MagicMock,
+    mathematical_agent: MagicMock,  # Garantir que é MagicMock
     writer_agent: MagicMock,
 ) -> None:
     context = MathContext(
@@ -239,17 +211,20 @@ def test_returns_complete_metadata(
 
     context_resolver.resolve.return_value = context
 
-    mathematical_agent.evaluate_expression.return_value = 15
+    mathematical_agent.execute.return_value = 15
 
-    writer_agent.generate_response.return_value = "The result is 15."
+    # Lembre-se também de configurar o writer_agent com o dicionário estruturado
+    writer_agent.generate_response.return_value = {
+        "content": "The result is 15.",
+        "usage": {},
+    }
 
-    result = orchestrator.process_message(
+    response = orchestrator.process_message(
         user_message="7 + 8",
         conversation_history=[],
     )
 
-    assert result["metadata"] == {
-        "math_result": 15,
-        "expression": "7 + 8",
-        "language": "en",
-    }
+    # Asserções de metadados completos
+    assert response["metadata"]["math_result"] == 15
+    assert response["metadata"]["expression"] == "7 + 8"
+    assert response["metadata"]["language"] == "en"

@@ -14,7 +14,7 @@ def test_simple_addition(
         conversation_history=[],
     )
 
-    assert response["metadata"]["math_result"] == 9
+    assert response["metadata"]["math_result"] == 9.0
 
 
 @pytest.mark.acceptance

@@ -47,9 +47,11 @@ def test_generate_response(
         language=language,
     )
 
-    assert generated == response
-
-    llm_service.generate_response.assert_called_once()
+    expected = {
+            "content": response,
+            "usage": {},
+        }
+    assert generated == expected
 
 
 @pytest.mark.parametrize(
@@ -72,11 +74,16 @@ def test_generate_error_response(
     }
 
     response = writer_agent.generate_error_response(
+        user_message=message,
         error="Division by zero",
-        language=language,
     )
+    
+    expected = {
+        "content": message,
+        "usage": {},
+    }
+    assert response == expected
 
-    assert response == message
 
 
 def test_llm_called_once(
@@ -112,6 +119,7 @@ def test_returns_llm_content(
         language="en",
     )
 
+    expected = {'content': 'Custom response.', 'usage': {}}
     assert response == expected
 
 
@@ -176,7 +184,9 @@ def test_response_is_string(
         language="en",
     )
 
-    assert isinstance(response, str)
+    assert isinstance(response, dict)
+    assert isinstance(response["content"], str)
+    assert response["content"] == "The result is 42."
 
 
 def test_empty_response_is_allowed(
@@ -193,4 +203,4 @@ def test_empty_response_is_allowed(
         language="en",
     )
 
-    assert response == ""
+    assert response["content"] == ""

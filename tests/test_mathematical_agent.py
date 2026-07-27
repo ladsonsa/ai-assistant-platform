@@ -5,9 +5,16 @@ from ai_assistant_platform.agents.mathematical_agent import (
 )
 
 
+from ai_assistant_platform.tools.expression_evaluator import (
+    ExpressionEvaluator,
+)
+
+
 @pytest.fixture
 def agent() -> MathematicalAgent:
-    return MathematicalAgent()
+    return MathematicalAgent(
+        evaluator=ExpressionEvaluator(),
+    )
 
 
 @pytest.mark.parametrize(
