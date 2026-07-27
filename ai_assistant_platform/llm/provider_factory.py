@@ -1,58 +1,127 @@
-from ai_assistant_platform.llm.providers.openai_provider import (
-    OpenAIProvider,
+from importlib import import_module
+
+from ai_assistant_platform.config.logging_config import (
+    get_logger,
 )
 
-from ai_assistant_platform.llm.providers.gemini_provider import (
-    GeminiProvider,
-)
-
-from ai_assistant_platform.llm.providers.ollama_provider import (
-    OllamaProvider,
-)
+logger = get_logger(__name__)
 
 
 class ProviderFactory:
-    """
-    Factory responsible for creating language model provider instances.
-
-    This factory maps provider identifiers to their corresponding
-    implementations and instantiates the requested provider.
+    """Factory responsible for creating language model providers.
 
     Attributes:
-        PROVIDERS (dict[str, type]):
-            Mapping between provider names and their implementation
-            classes.
+        _PROVIDERS (dict): A mapping of provider names to their corresponding module paths and class names.
     """
 
-    PROVIDERS = {
-        "openai": OpenAIProvider,
-        "gemini": GeminiProvider,
-        "ollama": OllamaProvider,
+    _PROVIDERS = {
+        "openai": (
+            "ai_assistant_platform.llm.providers.openai_provider",
+            "OpenAIProvider",
+        ),
+        "gemini": (
+            "ai_assistant_platform.llm.providers.gemini_provider",
+            "GeminiProvider",
+        ),
+        "ollama": (
+            "ai_assistant_platform.llm.providers.ollama_provider",
+            "OllamaProvider",
+        ),
     }
 
     @classmethod
-    def create(
+    def get_provider(
         cls,
         provider_name: str,
     ):
-        """
-        Create an instance of the requested language model provider.
+        """Create and return a provider instance based on the given provider name.
 
         Args:
-            provider_name:
-                Name of the provider to instantiate.
+            provider_name (str): The name of the provider to instantiate.
 
         Returns:
-            An initialized language model provider instance.
+            Any: An instance of the requested LLM provider class.
 
         Raises:
-            ValueError:
-                If the specified provider is not supported.
+            ValueError: If the requested provider name is not supported.
+            RuntimeError: If the provider's required package is missing, the class cannot be found,
+                or initialization fails for any other reason.
         """
 
-        provider = cls.PROVIDERS.get(provider_name.lower())
+        provider_name = provider_name.lower()
 
-        if provider is None:
+        logger.info(
+            "Resolving provider=%s",
+            provider_name,
+        )
+
+        provider_info = cls._PROVIDERS.get(
+            provider_name,
+        )
+
+        if provider_info is None:
+            logger.error(
+                "Unsupported provider requested provider=%s",
+                provider_name,
+            )
             raise ValueError(f"Unsupported provider: {provider_name}")
 
-        return provider()
+        module_name, class_name = provider_info
+
+        try:
+            logger.debug(
+                "Importing provider module=%s class=%s",
+                module_name,
+                class_name,
+            )
+
+            module = import_module(
+                module_name,
+            )
+
+            provider_class = getattr(
+                module,
+                class_name,
+            )
+
+            provider = provider_class()
+
+            logger.info(
+                "Provider instantiated provider=%s class=%s",
+                provider_name,
+                class_name,
+            )
+
+            return provider
+
+        except ModuleNotFoundError as exc:
+            logger.exception(
+                "Provider unavailable provider=%s missing_package=%s",
+                provider_name,
+                exc.name,
+            )
+            raise RuntimeError(
+                f"The '{provider_name}' provider is unavailable because "
+                f"the required package '{exc.name}' is not installed."
+            ) from exc
+
+        except AttributeError as exc:
+            logger.exception(
+                "Provider class not found provider=%s module=%s class=%s",
+                provider_name,
+                module_name,
+                class_name,
+            )
+            raise RuntimeError(
+                f"The provider class '{class_name}' was not found in "
+                f"module '{module_name}'."
+            ) from exc
+
+        except Exception as exc:
+            logger.exception(
+                "Failed to initialize provider provider=%s",
+                provider_name,
+            )
+            raise RuntimeError(
+                f"Failed to initialize provider '{provider_name}': {exc}"
+            ) from exc

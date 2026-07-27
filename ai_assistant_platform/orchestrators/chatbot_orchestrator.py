@@ -1,178 +1,289 @@
 from ai_assistant_platform.agents.mathematical_agent import (
     MathematicalAgent,
 )
-
 from ai_assistant_platform.agents.writer_agent import (
     WriterAgent,
 )
+from ai_assistant_platform.config.logging_config import (
+    get_logger,
+)
+from ai_assistant_platform.core.context_resolver import (
+    ContextResolver,
+)
+from ai_assistant_platform.llm.llm_service import (
+    LLMService,
+)
+from ai_assistant_platform.tools.expression_evaluator import (
+    ExpressionEvaluator,
+)
 
-import re
+logger = get_logger(__name__)
 
 
 class ChatbotOrchestrator:
-    """
-    Central orchestration layer responsible for coordinating
-    specialized agents and managing the request processing flow.
+    """Coordinates the complete chatbot execution pipeline.
 
-    Responsibilities:
-        - Analyze incoming user requests.
-        - Route requests to the appropriate agent.
-        - Extract mathematical operations and operands.
-        - Coordinate interaction between agents.
-        - Return the final response to the caller.
+    Flow:
 
-    Limitations:
-        - Does not perform mathematical calculations directly.
-        - Does not generate user-facing responses directly.
-        - Does not communicate with LLM providers.
+        User Input
+            ↓
+        Context Resolver
+            ↓
+        Mathematical Agent
+            ↓
+        Writer Agent
+            ↓
+        Response
+
+    Attributes:
+        _llm_service (LLMService): The LLM service instance used for context resolution and response generation.
+        _context_resolver (ContextResolver): Resolves user messages into structured math contexts.
+        _mathematical_agent (MathematicalAgent): Executes mathematical evaluations.
+        _writer_agent (WriterAgent): Generates human-readable responses and error explanations.
     """
 
     def __init__(
         self,
-        mathematical_agent: MathematicalAgent,
-        writer_agent: WriterAgent,
+        mathematical_agent: MathematicalAgent | None = None,
+        writer_agent: WriterAgent | None = None,
+        context_resolver: ContextResolver | None = None,
+        llm_service: LLMService | None = None,
     ) -> None:
-        """
-        Initialize orchestrator dependencies.
+        """Initializes the ChatbotOrchestrator.
 
         Args:
-            mathematical_agent:
-                Specialized agent responsible for mathematical
-                operations.
+            mathematical_agent (MathematicalAgent | None):
+                Optional MathematicalAgent instance. If not provided,
+                a default MathematicalAgent is created.
 
-            writer_agent:
-                Specialized agent responsible for generating
-                user-friendly responses.
+            writer_agent (WriterAgent | None):
+                Optional WriterAgent instance. If not provided,
+                a default WriterAgent is created.
+
+            context_resolver (ContextResolver | None):
+                Optional ContextResolver instance. If not provided,
+                a default ContextResolver is created.
+
+            llm_service (LLMService | None):
+                Optional LLMService instance. If not provided,
+                a default LLMService is created.
+
+        Returns:
+            None
+
+        Raises:
+            None
         """
 
-        self.mathematical_agent = mathematical_agent
-        self.writer_agent = writer_agent
+        self._llm_service = llm_service or LLMService()
+
+        logger.info(
+            "Initializing ChatbotOrchestrator with provider=%s",
+            self._llm_service.provider_name,
+        )
+
+        self._context_resolver = (
+            context_resolver
+            if context_resolver is not None
+            else ContextResolver(
+                llm_service=self._llm_service,
+            )
+        )
+
+        self._mathematical_agent = (
+            mathematical_agent
+            if mathematical_agent is not None
+            else MathematicalAgent(
+                evaluator=ExpressionEvaluator(),
+            )
+        )
+
+        self._writer_agent = (
+            writer_agent
+            if writer_agent is not None
+            else WriterAgent(
+                llm_service=self._llm_service,
+            )
+        )
+
+        logger.info("ChatbotOrchestrator initialized successfully")
 
     def process_message(
         self,
         user_message: str,
         conversation_history: list[dict],
-    ) -> str:
-        """
-        Process a user message and coordinate the execution flow.
-
-        The orchestrator determines whether the request should be
-        handled by the mathematical agent or directly by the writer
-        agent.
+    ) -> dict:
+        """Processes an incoming user message through the orchestrator pipeline.
 
         Args:
-            user_message:
-                Message received from the user.
-
-            conversation_history:
-                Complete conversation history used to provide
-                context for response generation.
+            user_message (str): The message sent by the user.
+            conversation_history (list[dict]): The historical messages of the conversation.
 
         Returns:
-            Final response generated for the user.
+            dict: A dictionary containing the final response, metadata, and token usage statistics.
 
         Raises:
-            ValueError:
-                If the mathematical request contains invalid
-                or unsupported data.
+            None
         """
-
-        if self.mathematical_agent.can_handle(user_message):
-
-            operation = self._extract_operation(user_message)
-
-            number_1, number_2 = self._extract_numbers(user_message)
-
-            math_result = self.mathematical_agent.execute(
-                operation=operation,
-                number_1=number_1,
-                number_2=number_2,
-            )
-
-            response = self.writer_agent.generate_response(
-                user_message=user_message,
-                context=math_result,
-            )
-
-        else:
-
-            response = self.writer_agent.generate_response(
-                user_message=user_message,
-                context=conversation_history,
-            )
-
-        return response
-
-    def _extract_numbers(
-        self,
-        user_message: str,
-    ) -> tuple[float, float]:
-        """
-        Extract numerical operands from the user message.
-
-        Args:
-            user_message:
-                Original message sent by the user.
-
-        Returns:
-            Tuple containing the two extracted operands.
-
-        Raises:
-            ValueError:
-                If fewer than two numbers are found in the message.
-        """
-
-        numbers = re.findall(
-            r"-?\d+\.?\d*",
-            user_message,
+        logger.info(
+            "Processing message length=%d history_size=%d",
+            len(user_message),
+            len(conversation_history),
         )
 
-        if len(numbers) < 2:
-            raise ValueError("At least two numbers are required.")
-
-        return (
-            float(numbers[0]),
-            float(numbers[1]),
+        last_math_result = self._extract_last_math_result(
+            conversation_history,
         )
 
-    def _extract_operation(
-        self,
-        user_message: str,
-    ) -> str:
-        """
-        Identify the mathematical operation requested by the user.
+        math_context = self._context_resolver.resolve(
+            user_message=user_message,
+            last_math_result=last_math_result,
+        )
 
-        Supported operations:
-            - addition
-            - subtraction
-            - multiplication
-            - division
+        if math_context is None:
+            logger.info("Non-math message detected. Returning refusal.")
+            return {
+                "response": self._refusal_message(),
+                "metadata": {},
+                "usage": {},
+            }
+
+        expression = math_context.expression
+
+        if math_context.use_previous_result and last_math_result is not None:
+            expression = expression.replace(
+                "$result",
+                str(last_math_result),
+            )
+
+        logger.debug(
+            "Resolved math expression=%s language=%s use_previous_result=%s",
+            expression,
+            math_context.language,
+            math_context.use_previous_result,
+        )
+
+        try:
+            result = self._mathematical_agent.execute(
+                expression=expression,
+            )
+
+        except ZeroDivisionError:
+            logger.warning(
+                "Division by zero detected expression = %s",
+                expression,
+            )
+
+            error_messages = {
+                "pt": "Erro: Divisão por zero não é permitida na matemática.",
+                "en": "Error: Division by zero is not allowed.",
+                "es": "Error: La división por cero no está permitida.",
+            }
+
+            lang = getattr(math_context, "language", "pt")
+            response_text = error_messages.get(lang, error_messages["pt"])
+
+            return {
+                "response": response_text,
+                "metadata": {"error": "ZeroDivisionError", "expression": expression},
+                "usage": {},
+            }
+
+        except ValueError as exc:
+            logger.warning(
+                "Mathematical evaluation failed expression=%s error=%s",
+                expression,
+                exc,
+            )
+
+            error_response = self._writer_agent.generate_error_response(
+                user_message=user_message,
+                error=str(exc),
+            )
+
+            return {
+                "response": error_response["content"],
+                "metadata": {},
+                "usage": error_response.get(
+                    "usage",
+                    {},
+                ),
+            }
+
+        except RuntimeError as exc:
+            logger.exception(
+                "Infrastructure failure while processing message",
+            )
+            return {
+                "response": str(exc),
+                "metadata": {},
+                "usage": {},
+            }
+
+        response = self._writer_agent.generate_response(
+            result=result,
+            language=math_context.language,
+        )
+
+        logger.info(
+            "Message processed successfully result=%s language=%s",
+            result,
+            math_context.language,
+        )
+
+        return {
+            "response": response["content"],
+            "metadata": {
+                "math_result": result,
+                "expression": expression,
+                "language": math_context.language,
+            },
+            "usage": response.get(
+                "usage",
+                {},
+            ),
+        }
+
+    def _extract_last_math_result(
+        self,
+        conversation_history: list[dict],
+    ) -> float | None:
+        """Extracts the most recent mathematical result from the conversation history.
 
         Args:
-            user_message:
-                Original message sent by the user.
+            conversation_history (list[dict]): The historical messages of the conversation.
 
         Returns:
-            Internal operation identifier used by the
-            mathematical agent.
+            float | None: The last mathematical result value as a float, or None if not found.
 
         Raises:
-            ValueError:
-                If the requested operation is not supported.
+            None
         """
+        for message in reversed(
+            conversation_history,
+        ):
+            metadata = message.get(
+                "metadata",
+                {},
+            )
 
-        message = user_message.lower()
+            if "math_result" in metadata:
+                return metadata["math_result"]
 
-        if any(keyword in message for keyword in ["add", "+", "plus"]):
-            return "addition"
+        return None
 
-        if any(keyword in message for keyword in ["subtract", "-", "minus"]):
-            return "subtraction"
+    def _refusal_message(
+        self,
+    ) -> str:
+        """Returns a standard refusal message for non-mathematical queries.
 
-        if any(keyword in message for keyword in ["multiply", "*", "times"]):
-            return "multiplication"
+        Args:
+            None
 
-        if any(keyword in message for keyword in ["divide", "/", "divided by"]):
-            return "division"
+        Returns:
+            str: The refusal message string.
 
-        raise ValueError("Unsupported operation.")
+        Raises:
+            None
+        """
+        return "Desculpe, só consigo responder a perguntas matemáticas."

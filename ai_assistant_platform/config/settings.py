@@ -1,46 +1,36 @@
-"""
-Application configuration.
-
-This module loads environment variables from a `.env` file and exposes
-the configuration used by the application's language model providers.
-
-Module Attributes:
-    OPENAI_API_KEY (str | None):
-        API key used for the OpenAI provider.
-
-    GEMINI_API_KEY (str | None):
-        API key used for the Gemini provider.
-
-    OLLAMA_BASE_URL (str | None):
-        Base URL of the Ollama server.
-
-    LLM_PROVIDER (str):
-        Selected language model provider.
-        Defaults to ``"openai"``.
-
-    MODEL_NAME (str):
-        Name of the configured language model.
-        Defaults to ``"gpt-5.4-mini"``.
-"""
+from os import getenv
 
 from dotenv import load_dotenv
 
-import os
-
 load_dotenv()
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+PROVIDER_NAME = getenv("PROVIDER_NAME", "openai")
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+OPENAI_API_KEY = getenv("OPENAI_API_KEY")
+GEMINI_API_KEY = getenv("GEMINI_API_KEY")
 
-OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL")
+OPENAI_MODEL = getenv("OPENAI_MODEL", "gpt-5.4-mini")
+GEMINI_MODEL = getenv("GEMINI_MODEL", "gemini-3.1-flash-lite")
+OLLAMA_MODEL = getenv("OLLAMA_MODEL", "llama3.2")
 
-LLM_PROVIDER = os.getenv(
-    "LLM_PROVIDER",
-    "openai",
-)
+TEMPERATURE = float(getenv("TEMPERATURE", "0"))
+MAX_TOKENS = int(getenv("MAX_TOKENS", "512"))
+TOP_P = float(getenv("TOP_P", "1"))
+FREQUENCY_PENALTY = float(getenv("FREQUENCY_PENALTY", "0"))
+PRESENCE_PENALTY = float(getenv("PRESENCE_PENALTY", "0"))
 
-MODEL_NAME = os.getenv(
-    "MODEL_NAME",
-    "gpt-5.4-mini",
+LOG_LEVEL = getenv("LOG_LEVEL", "INFO").upper()
+LOG_DIR = getenv("LOG_DIR", "logs")
+LOG_FILE_NAME = getenv("LOG_FILE_NAME", "app.log")
+LOG_MAX_BYTES = int(getenv("LOG_MAX_BYTES", "5242880"))
+LOG_BACKUP_COUNT = int(getenv("LOG_BACKUP_COUNT", "5"))
+LOG_TO_CONSOLE = getenv("LOG_TO_CONSOLE", "true").strip().lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
+LOG_FORMAT = getenv(
+    "LOG_FORMAT",
+    "%(asctime)s | %(levelname)s | %(name)s | %(message)s",
 )
