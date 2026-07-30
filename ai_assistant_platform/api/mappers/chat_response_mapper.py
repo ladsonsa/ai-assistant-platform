@@ -1,8 +1,10 @@
-from ai_assistant_platform.api.schemas import ChatResponse
+from ai_assistant_platform.api.schemas import (
+    ChatResponse,
+)
 
 
 class ChatResponseMapper:
-    """Provides mapping utilities to transform orchestrator responses into API response schemas."""
+    """Provides mapping utilities to transform internal orchestrator responses into API response schemas."""
 
     @staticmethod
     def to_schema(
@@ -11,8 +13,8 @@ class ChatResponseMapper:
         """Converts an orchestrator response dictionary into a ChatResponse schema object.
 
         Args:
-            response (dict): A dictionary containing the orchestrator output, expected to
-                include 'response' and 'metadata' keys.
+            response (dict): A dictionary containing orchestrator outputs, expected to include
+                'response' and 'metadata' keys.
 
         Returns:
             ChatResponse: The constructed response schema containing message content and metadata.

@@ -64,10 +64,8 @@ class ChatService:
             for message in request.history
         ]
 
-        user_message = history[-1]["content"]
-
         response = self._orchestrator.process_message(
-            user_message=user_message,
+            user_message=history[-1]["content"],
             conversation_history=history,
         )
 
