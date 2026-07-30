@@ -4,13 +4,11 @@ from fastapi import APIRouter
 from fastapi import Depends
 
 from ai_assistant_platform.api.dependencies import (
-    get_chatbot_orchestrator,
+    get_chat_service,
 )
 from ai_assistant_platform.api.schemas import ChatRequest
 from ai_assistant_platform.api.schemas import ChatResponse
-from ai_assistant_platform.orchestrators.chatbot_orchestrator import (
-    ChatbotOrchestrator,
-)
+from ai_assistant_platform.services import ChatService
 
 router = APIRouter(
     prefix="/chat",
@@ -24,25 +22,21 @@ router = APIRouter(
 )
 async def send_message(
     request: ChatRequest,
-    orchestrator: Annotated[
-        ChatbotOrchestrator,
-        Depends(get_chatbot_orchestrator),
+    service: Annotated[
+        ChatService,
+        Depends(get_chat_service),
     ],
 ) -> ChatResponse:
-    """Handles incoming chat messages and generates assistant responses.
+    """Handles incoming chat messages and delegates execution to the chat service.
 
     Args:
         request (ChatRequest): The payload containing conversation history and message context.
-        orchestrator (ChatbotOrchestrator): The injected orchestrator instance
-            responsible for processing the chat conversation.
+        service (ChatService): The injected service instance responsible for processing
+            the chat logic and interacting with the orchestrator.
 
     Returns:
         ChatResponse: The generated chat response model containing response content and metadata.
     """
-    _ = request
-    _ = orchestrator
-
-    return ChatResponse(
-        content="FastAPI is running.",
-        metadata=None,
+    return await service.send(
+        request=request,
     )
