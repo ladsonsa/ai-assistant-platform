@@ -1,17 +1,17 @@
-from typing import Any
+from typing import Any, Dict, Optional
+from pydantic import BaseModel, Field
 
-from pydantic import BaseModel
 
-
-class ChatMessage(BaseModel):
-    """Represents an individual message within a chat session or conversation stream.
+class ChatMessageSchema(BaseModel):
+    """Represents an individual chat message within a conversation payload.
 
     Attributes:
-        role: The entity or origin sending the message (e.g., 'user', 'assistant', 'system').
-        content: The text or body content of the message.
-        metadata: Optional dictionary containing additional contextual details or state key-value pairs.
+        role (str): The role of the message sender (e.g., 'user', 'assistant', 'system').
+        content (str): The textual body of the message.
+        metadata (Optional[Dict[str, Any]]): Additional contextual key-value metadata 
+            associated with the message. Defaults to an empty dictionary.
     """
 
     role: str
     content: str
-    metadata: dict[str, Any] | None = None
+    metadata: Optional[Dict[str, Any]] = Field(default_factory=dict)
