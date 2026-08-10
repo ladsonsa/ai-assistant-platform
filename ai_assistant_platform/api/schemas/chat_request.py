@@ -1,14 +1,14 @@
+from typing import List
 from pydantic import BaseModel
+from ai_assistant_platform.api.schemas.chat_message import ChatMessageSchema
 
-from ai_assistant_platform.api.schemas.chat_message import ChatMessage
 
-
-class ChatRequest(BaseModel):
-    """Represents an incoming chat request containing conversation history.
+class ChatRequestSchema(BaseModel):
+    """Represents the request payload for chat interactions.
 
     Attributes:
-        history (list[ChatMessage]): A list of previous chat messages defining
-            the context of the conversation.
+        history (List[ChatMessageSchema]): The sequence of chat messages representing 
+            the conversation history.
     """
 
-    history: list[ChatMessage]
+    history: List[ChatMessageSchema]

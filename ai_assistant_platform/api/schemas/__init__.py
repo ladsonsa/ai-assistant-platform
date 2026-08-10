@@ -1,9 +1,5 @@
-from ai_assistant_platform.api.schemas.chat_message import ChatMessage
-from ai_assistant_platform.api.schemas.chat_request import ChatRequest
-from ai_assistant_platform.api.schemas.chat_response import ChatResponse
+from ai_assistant_platform.api.schemas.chat_message import ChatMessageSchema
+from ai_assistant_platform.api.schemas.chat_request import ChatRequestSchema
+from ai_assistant_platform.api.schemas.chat_response import ChatResponseSchema
 
-__all__ = [
-    "ChatMessage",
-    "ChatRequest",
-    "ChatResponse",
-]
+__all__ = ["ChatMessageSchema", "ChatRequestSchema", "ChatResponseSchema"]
