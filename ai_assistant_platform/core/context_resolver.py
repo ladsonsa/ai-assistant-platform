@@ -18,10 +18,13 @@ logger = get_logger(__name__)
 
 
 class ContextResolver:
-    """Resolves user messages into structured mathematical context.
+    """Resolves mathematical intent and context from natural language input messages.
 
     Attributes:
-        _llm_service (LLMService): The service used to generate responses from the LLM.
+        SUPPORTED_LANGUAGES (frozenset[str]): Set of supported ISO 639-1 two-letter 
+            language codes.
+        _llm_service (LLMService): Service instance used for natural language processing 
+            via an LLM.
     """
 
     SUPPORTED_LANGUAGES = frozenset(
@@ -44,16 +47,10 @@ class ContextResolver:
         self,
         llm_service: LLMService,
     ) -> None:
-        """Initializes the ContextResolver with an LLM service.
+        """Initializes the ContextResolver with the required LLM service.
 
         Args:
-            llm_service (LLMService): The LLM service instance to be used for resolving complex queries.
-
-        Returns:
-            None
-
-        Raises:
-            None
+            llm_service (LLMService): Service handling interaction with language models.
         """
         self._llm_service = llm_service
         logger.info("ContextResolver initialized")
@@ -63,18 +60,16 @@ class ContextResolver:
         user_message: str,
         last_math_result: float | None,
     ) -> MathContext | None:
-        """Resolves a user message and optional previous result into a MathContext object.
+        """Resolves user input into a MathContext object using deterministic extraction or LLM analysis.
 
         Args:
-            user_message (str): The message provided by the user.
-            last_math_result (float | None): The previous mathematical calculation result, if any.
+            user_message (str): The raw text message provided by the user.
+            last_math_result (float | None): The numerical result of the previous mathematical 
+                operation, if available.
 
         Returns:
-            MathContext | None: A structured MathContext object if resolution is successful,
-                or None if the message cannot be resolved as a math context.
-
-        Raises:
-            None
+            MathContext | None: Resolved mathematical context details, or None if the input 
+                does not contain mathematical intent.
         """
         logger.debug(
             "Resolving math context message_length=%d has_previous_result=%s",
@@ -90,14 +85,20 @@ class ContextResolver:
             language = self._detect_language(
                 user_message,
             )
+            resolved_expression = self._resolve_previous_result(
+                expression=expression,
+                last_math_result=last_math_result,
+            )
+
             logger.info(
                 "Direct mathematical expression detected language=%s expression=%s",
                 language,
-                expression,
+                resolved_expression,
             )
+
             return MathContext(
-                expression=expression,
-                use_previous_result="$result" in expression,
+                expression=resolved_expression,
+                use_previous_result=False,
                 previous_result=last_math_result,
                 language=language,
             )
@@ -138,46 +139,69 @@ class ContextResolver:
             logger.warning("LLM response returned blank expression")
             return None
 
+        resolved_expression = self._resolve_previous_result(
+            expression=expression,
+            last_math_result=last_math_result,
+        )
+
         language = self._normalize_language(
             data.get(
                 "language",
             )
         )
 
-        use_previous_result = bool(
-            data.get(
-                "use_previous_result",
-                False,
-            )
-        )
-
         logger.info(
-            "LLM resolved mathematical context language=%s use_previous_result=%s",
+            "LLM resolved mathematical context language=%s expression=%s",
             language,
-            use_previous_result,
+            resolved_expression,
         )
 
         return MathContext(
-            expression=expression,
-            use_previous_result=use_previous_result,
+            expression=resolved_expression,
+            use_previous_result=False,
             previous_result=last_math_result,
             language=language,
+        )
+
+    def _resolve_previous_result(
+        self,
+        expression: str,
+        last_math_result: float | None,
+    ) -> str:
+        """Replaces the '$result' placeholder in an expression with the actual previous result value.
+
+        Args:
+            expression (str): The mathematical expression string containing potential placeholders.
+            last_math_result (float | None): The previous evaluation result value to inject.
+
+        Returns:
+            str: Expression string with '$result' replaced by the numerical value if available.
+        """
+        if "$result" not in expression:
+            return expression
+
+        if last_math_result is None:
+            logger.warning(
+                "Expression references previous result but no previous result exists",
+            )
+            return expression
+
+        return expression.replace(
+            "$result",
+            str(last_math_result),
         )
 
     def _extract_expression(
         self,
         text: str,
     ) -> str | None:
-        """Extracts a mathematical expression directly from the text string using heuristics.
+        """Attempts direct extraction of a mathematical expression from plain text.
 
         Args:
-            text (str): The input text to extract the expression from.
+            text (str): The input text to analyze.
 
         Returns:
-            str | None: The extracted expression string, or None if extraction fails.
-
-        Raises:
-            None
+            str | None: The extracted math expression string, or None if extraction failed.
         """
         cleaned = text.lower()
 
@@ -193,29 +217,58 @@ class ContextResolver:
             cleaned = cleaned.replace(prefix, "")
 
         if "$result" in cleaned:
-            cleaned = cleaned.replace("resultado anterior", "$result").replace(
+            cleaned = cleaned.replace(
+                "resultado anterior",
+                "$result",
+            ).replace(
                 "resultado",
                 "$result",
             )
 
-        if cleaned.startswith(("subtract", "subtraia", "menos", "-")):
-            match = re.search(r"\d+(?:\.\d+)?", cleaned)
+        if cleaned.startswith(
+            (
+                "subtract",
+                "subtraia",
+                "menos",
+                "-",
+            )
+        ):
+            match = re.search(
+                r"\d+(?:\.\d+)?",
+                cleaned,
+            )
             if match:
                 return f"$result - {match.group()}"
 
-        if cleaned.startswith(("add", "plus", "somar", "adicionar", "mais", "+")):
-            match = re.search(r"\d+(?:\.\d+)?", cleaned)
+        if cleaned.startswith(
+            (
+                "add",
+                "plus",
+                "somar",
+                "adicionar",
+                "mais",
+                "+",
+            )
+        ):
+            match = re.search(
+                r"\d+(?:\.\d+)?",
+                cleaned,
+            )
             if match:
                 return f"$result + {match.group()}"
 
-        text_without_result = cleaned.replace("$result", "")
-        if re.search(r"[a-z]", text_without_result):
-            logger.debug("Direct extraction rejected because of alphabetic text")
-            return None
-        text_without_result = cleaned.replace("$result", "")
+        text_without_result = cleaned.replace(
+            "$result",
+            "",
+        )
 
-        if re.search(r"[a-z]", text_without_result):
-            logger.debug("Direct extraction rejected because of alphabetic text")
+        if re.search(
+            r"[a-z]",
+            text_without_result,
+        ):
+            logger.debug(
+                "Direct extraction rejected because of alphabetic text",
+            )
             return None
 
         match = re.search(
@@ -224,15 +277,25 @@ class ContextResolver:
         )
 
         if not match:
-            logger.debug("Direct extraction found no mathematical pattern")
+            logger.debug(
+                "Direct extraction found no mathematical pattern",
+            )
             return None
 
         expression = match.group().strip()
-        expression = expression.replace("\n", "").replace("\r", "").replace(" ", "")
+        expression = (
+            expression
+            .replace("\n", "")
+            .replace("\r", "")
+            .replace(" ", "")
+        )
 
-        if not re.search(r"\d", expression) and "$result" not in expression:
+        if not re.search(
+            r"\d",
+            expression,
+        ) and "$result" not in expression:
             logger.debug(
-                "Direct extraction rejected because no numeric content was found"
+                "Direct extraction rejected because no numeric content was found",
             )
             return None
 
@@ -248,17 +311,14 @@ class ContextResolver:
         user_message: str,
         last_math_result: float | None,
     ) -> dict | None:
-        """Calls the LLM service to interpret the user message and extract mathematical context.
+        """Involves the LLM service to analyze ambiguous mathematical input and retrieve JSON results.
 
         Args:
-            user_message (str): The message provided by the user.
-            last_math_result (float | None): The previous mathematical result, if available.
+            user_message (str): The raw text message provided by the user.
+            last_math_result (float | None): Previous calculation result context.
 
         Returns:
-            dict | None: A dictionary containing the parsed LLM response payload, or None if parsing fails.
-
-        Raises:
-            None
+            dict | None: Parsed JSON response dictionary from the LLM, or None if parsing failed.
         """
         logger.debug(
             "Calling LLM for math interpretation has_previous_result=%s",
@@ -299,16 +359,13 @@ class ContextResolver:
         self,
         text: str,
     ) -> bool:
-        """Checks if a text message is a potential candidate for a mathematical query.
+        """Determines if a text string is a potential candidate for mathematical processing.
 
         Args:
-            text (str): The input text to evaluate.
+            text (str): The raw text string to evaluate.
 
         Returns:
-            bool: True if the text contains mathematical keywords or operators, False otherwise.
-
-        Raises:
-            None
+            bool: True if mathematical operators or keywords are detected, False otherwise.
         """
         lowered = text.lower()
 
@@ -357,7 +414,10 @@ class ContextResolver:
             "metade",
         )
 
-        is_candidate = any(word in lowered for word in math_words)
+        is_candidate = any(
+            word in lowered
+            for word in math_words
+        )
 
         logger.debug(
             "Math candidate evaluated result=%s",
@@ -370,16 +430,13 @@ class ContextResolver:
         self,
         text: str,
     ) -> str:
-        """Detects the language of the given text based on keyword heuristics.
+        """Performs basic language detection based on keyword presence.
 
         Args:
-            text (str): The input text to analyze.
+            text (str): The text content to analyze.
 
         Returns:
-            str: The detected language code (e.g., 'pt', 'en', 'es').
-
-        Raises:
-            None
+            str: The detected two-letter ISO language code (defaults to 'en').
         """
         lowered = text.lower()
 
@@ -426,19 +483,18 @@ class ContextResolver:
         self,
         language: str | None,
     ) -> str:
-        """Normalizes and validates a given language string against supported languages.
+        """Normalizes an incoming language string to a supported two-letter code.
 
         Args:
-            language (str | None): The language string to normalize.
+            language (str | None): Raw language string or code to normalize.
 
         Returns:
-            str: The normalized language code.
-
-        Raises:
-            None
+            str: A valid supported language code, defaulting to 'en' if invalid or missing.
         """
         if not language:
-            logger.debug("Language not provided. Falling back to en")
+            logger.debug(
+                "Language not provided. Falling back to en",
+            )
             return "en"
 
         language = language.lower()
@@ -447,9 +503,11 @@ class ContextResolver:
             return language
 
         normalized = language[:2]
+
         logger.debug(
             "Language normalized language=%s normalized=%s",
             language,
             normalized,
         )
+
         return normalized
