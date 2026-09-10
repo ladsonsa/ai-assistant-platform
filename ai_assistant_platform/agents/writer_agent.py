@@ -79,9 +79,7 @@ class WriterAgent:
         )
 
         return {
-            "content": response.get(
-                "content", ""
-            ),
+            "content": response.get("content", ""),
             "usage": response.get("usage", {}),
         }
 

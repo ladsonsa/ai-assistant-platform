@@ -8,7 +8,7 @@ class ChatMessageSchema(BaseModel):
     Attributes:
         role (str): The role of the message sender (e.g., 'user', 'assistant', 'system').
         content (str): The textual body of the message.
-        metadata (Optional[Dict[str, Any]]): Additional contextual key-value metadata 
+        metadata (Optional[Dict[str, Any]]): Additional contextual key-value metadata
             associated with the message. Defaults to an empty dictionary.
     """
 
