@@ -21,9 +21,9 @@ class ContextResolver:
     """Resolves mathematical intent and context from natural language input messages.
 
     Attributes:
-        SUPPORTED_LANGUAGES (frozenset[str]): Set of supported ISO 639-1 two-letter 
+        SUPPORTED_LANGUAGES (frozenset[str]): Set of supported ISO 639-1 two-letter
             language codes.
-        _llm_service (LLMService): Service instance used for natural language processing 
+        _llm_service (LLMService): Service instance used for natural language processing
             via an LLM.
     """
 
@@ -64,11 +64,11 @@ class ContextResolver:
 
         Args:
             user_message (str): The raw text message provided by the user.
-            last_math_result (float | None): The numerical result of the previous mathematical 
+            last_math_result (float | None): The numerical result of the previous mathematical
                 operation, if available.
 
         Returns:
-            MathContext | None: Resolved mathematical context details, or None if the input 
+            MathContext | None: Resolved mathematical context details, or None if the input
                 does not contain mathematical intent.
         """
         logger.debug(
@@ -283,17 +283,15 @@ class ContextResolver:
             return None
 
         expression = match.group().strip()
-        expression = (
-            expression
-            .replace("\n", "")
-            .replace("\r", "")
-            .replace(" ", "")
-        )
+        expression = expression.replace("\n", "").replace("\r", "").replace(" ", "")
 
-        if not re.search(
-            r"\d",
-            expression,
-        ) and "$result" not in expression:
+        if (
+            not re.search(
+                r"\d",
+                expression,
+            )
+            and "$result" not in expression
+        ):
             logger.debug(
                 "Direct extraction rejected because no numeric content was found",
             )
@@ -414,10 +412,7 @@ class ContextResolver:
             "metade",
         )
 
-        is_candidate = any(
-            word in lowered
-            for word in math_words
-        )
+        is_candidate = any(word in lowered for word in math_words)
 
         logger.debug(
             "Math candidate evaluated result=%s",

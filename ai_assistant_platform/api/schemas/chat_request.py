@@ -7,7 +7,7 @@ class ChatRequestSchema(BaseModel):
     """Represents the request payload for chat interactions.
 
     Attributes:
-        history (List[ChatMessageSchema]): The sequence of chat messages representing 
+        history (List[ChatMessageSchema]): The sequence of chat messages representing
             the conversation history.
     """
 

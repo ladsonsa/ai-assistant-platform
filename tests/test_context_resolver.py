@@ -56,7 +56,7 @@ def test_resolve_direct_expression(
 ) -> None:
     """Tests deterministic resolution of direct mathematical expressions.
 
-    Verifies that explicit mathematical inputs bypass the LLM and directly produce 
+    Verifies that explicit mathematical inputs bypass the LLM and directly produce
     a valid MathContext object with expected properties.
     """
     context = resolver.resolve(
