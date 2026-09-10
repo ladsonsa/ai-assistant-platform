@@ -1,5 +1,5 @@
 from ai_assistant_platform.api.schemas import (
-    ChatResponse,
+    ChatResponseSchema,
 )
 
 
@@ -9,20 +9,20 @@ class ChatResponseMapper:
     @staticmethod
     def to_schema(
         response: dict,
-    ) -> ChatResponse:
-        """Converts an orchestrator response dictionary into a ChatResponse schema object.
+    ) -> ChatResponseSchema:
+        """Converts an orchestrator response dictionary into a ChatResponseSchema schema object.
 
         Args:
             response (dict): A dictionary containing orchestrator outputs, expected to include
                 'response' and 'metadata' keys.
 
         Returns:
-            ChatResponse: The constructed response schema containing message content and metadata.
+            ChatResponseSchema: The constructed response schema containing message content and metadata.
 
         Raises:
             KeyError: If 'response' or 'metadata' keys are missing from the input dictionary.
         """
-        return ChatResponse(
+        return ChatResponseSchema(
             content=response["response"],
             metadata=response["metadata"],
         )

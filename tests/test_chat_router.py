@@ -1,29 +1,41 @@
-from unittest.mock import patch
+from unittest.mock import MagicMock
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from ai_assistant_platform.api.dependencies import get_chat_service
 from ai_assistant_platform.api.routers.chat import router
+from ai_assistant_platform.services.chat_service import ChatService
 
 
-def create_test_client() -> TestClient:
-    """Creates an isolated FastAPI test client initialized with the chat router.
+def create_test_client(
+    chat_service: ChatService | None = None,
+) -> tuple[TestClient, MagicMock | None]:
+    """Creates an isolated FastAPI test client with optional chat service injection.
+
+    Args:
+        chat_service (ChatService | None): Optional chat service to inject into the
+            application dependency container.
 
     Returns:
-        TestClient: An instance of TestClient bound to a newly instantiated FastAPI app.
+        tuple[TestClient, MagicMock | None]: The test client and the mocked orchestrator
+            when a chat service is provided.
     """
     app = FastAPI()
     app.include_router(router)
-    return TestClient(app)
+
+    orchestrator = None
+
+    if chat_service is not None:
+        orchestrator = chat_service._orchestrator
+        app.dependency_overrides[get_chat_service] = lambda: chat_service
+
+    return TestClient(app), orchestrator
 
 
 def test_chat_preserves_metadata_in_response() -> None:
-    """Tests that the chat endpoint preserves and returns metadata in the response.
-
-    Verifies that metadata returned by the orchestrator (such as math execution details and
-    language) is properly forwarded in the API response payload.
-    """
-    client = create_test_client()
+    """Tests that the chat endpoint preserves metadata in the response."""
+    orchestrator = MagicMock()
 
     orchestrator_result = {
         "response": "O resultado é 30.",
@@ -34,25 +46,28 @@ def test_chat_preserves_metadata_in_response() -> None:
         },
     }
 
-    with patch(
-        "ai_assistant_platform.api.routers.chat.orchestrator"
-    ) as orchestrator:
-        orchestrator.process_message.return_value = (
-            orchestrator_result
-        )
+    orchestrator.process_message.return_value = orchestrator_result
 
-        response = client.post(
-            "/chat",
-            json={
-                "history": [
-                    {
-                        "role": "user",
-                        "content": "20 + 10",
-                        "metadata": {},
-                    }
-                ]
-            },
-        )
+    chat_service = ChatService(
+        orchestrator=orchestrator,
+    )
+
+    client, _ = create_test_client(
+        chat_service=chat_service,
+    )
+
+    response = client.post(
+        "/chat",
+        json={
+            "history": [
+                {
+                    "role": "user",
+                    "content": "20 + 10",
+                    "metadata": {},
+                }
+            ]
+        },
+    )
 
     assert response.status_code == 200
 
@@ -66,12 +81,8 @@ def test_chat_preserves_metadata_in_response() -> None:
 
 
 def test_chat_preserves_metadata_in_conversation_history() -> None:
-    """Tests that metadata attached to historical messages is preserved during orchestrator calls.
-
-    Verifies that multi-turn history retains metadata fields when passed down to the
-    orchestrator's `process_message` method.
-    """
-    client = create_test_client()
+    """Tests that historical message metadata is preserved when sent to the orchestrator."""
+    orchestrator = MagicMock()
 
     orchestrator_result = {
         "response": "O resultado é 15.",
@@ -81,6 +92,16 @@ def test_chat_preserves_metadata_in_conversation_history() -> None:
             "language": "pt",
         },
     }
+
+    orchestrator.process_message.return_value = orchestrator_result
+
+    chat_service = ChatService(
+        orchestrator=orchestrator,
+    )
+
+    client, _ = create_test_client(
+        chat_service=chat_service,
+    )
 
     history = [
         {
@@ -104,23 +125,18 @@ def test_chat_preserves_metadata_in_conversation_history() -> None:
         },
     ]
 
-    with patch(
-        "ai_assistant_platform.api.routers.chat.orchestrator"
-    ) as orchestrator:
-        orchestrator.process_message.return_value = (
-            orchestrator_result
-        )
-
-        response = client.post(
-            "/chat",
-            json={
-                "history": history,
-            },
-        )
+    response = client.post(
+        "/chat",
+        json={
+            "history": history,
+        },
+    )
 
     assert response.status_code == 200
 
     call = orchestrator.process_message.call_args
+
+    assert call.kwargs["user_message"] == "agora divida por 2"
 
     assert call.kwargs["conversation_history"] == [
         {
@@ -141,11 +157,8 @@ def test_chat_preserves_metadata_in_conversation_history() -> None:
 
 
 def test_chat_rejects_empty_history() -> None:
-    """Tests payload validation behavior when sending an empty conversation history list.
-
-    Verifies that requests with an empty history list are rejected with an HTTP 400 status.
-    """
-    client = create_test_client()
+    """Tests that an empty conversation history is rejected with HTTP 400."""
+    client, _ = create_test_client()
 
     response = client.post(
         "/chat",
