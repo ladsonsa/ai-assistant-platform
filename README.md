@@ -1,76 +1,52 @@
 # AI Assistant Platform
 
-[![Python](https://img.shields.io/badge/Python-3.14%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.115%2B-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![Streamlit](https://img.shields.io/badge/Streamlit-1.40%2B-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io/)
-[![Poetry](https://img.shields.io/badge/Poetry-2.x-60A5FA?logo=poetry&logoColor=white)](https://python-poetry.org/)
-[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
-[![Pytest](https://img.shields.io/badge/Tested%20with-Pytest-0A9EDC?logo=pytest&logoColor=white)](https://pytest.org/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+![Python](https://img.shields.io/badge/Python-3.14+-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.141.1-009688?logo=fastapi&logoColor=white)
+![Streamlit](https://img.shields.io/badge/Streamlit-1.59.2-FF4B4B?logo=streamlit&logoColor=white)
+![Poetry](https://img.shields.io/badge/Poetry-2.x-60A5FA?logo=poetry&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)
+![Pytest](https://img.shields.io/badge/Pytest-Tested-0A9EDC?logo=pytest&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green.svg)
 
-A modular AI-powered mathematical assistant built with **Python, FastAPI, Streamlit, and LLM-based natural language processing**.
+An AI-powered mathematical assistant built as a modular application, with a clear separation between natural-language understanding and deterministic mathematical execution.
 
-The platform combines conversational context with deterministic mathematical execution: the LLM is responsible for understanding the user's intent, while mathematical expressions are evaluated deterministically by the application.
+The platform combines Python, FastAPI, Streamlit, Next.js, TypeScript, and LLM integrations to support conversational mathematical interactions, contextual follow-up questions, and structured API access.
 
----
-
-## About the Project
-
-**AI Assistant Platform** is a conversational assistant focused on mathematical reasoning and contextual interactions.
-
-The current implementation represents **Generation 2**, combining:
-
-* **FastAPI** as the HTTP API layer
-* **Streamlit** as the interactive application interface
-* **LLM services** for natural-language understanding and response generation
-* **Deterministic mathematical evaluation** for numerical expressions
-* **Conversation context resolution** for follow-up questions
-* **Dependency injection** for application components
-
-The architecture separates natural-language interpretation from deterministic computation, avoiding the use of the LLM as the mathematical execution engine.
+> **Current status:** Generation 2 · Backend `1.1.0`
 
 ---
 
-## Highlights
+## Overview
 
-* Conversational mathematical assistant
-* Context-aware follow-up questions
-* Deterministic mathematical expression evaluation
-* LLM-assisted intent interpretation
-* Structured API request and response schemas
-* Conversation history and metadata preservation
-* FastAPI HTTP interface
-* Streamlit interactive interface
-* Dependency injection across the API/application flow
-* Automated test suite
-* Docker-based development environment
+The project focuses on software engineering practices around AI integration, backend architecture, deterministic business logic, API design, and conversational context.
 
----
+A core design principle is to keep probabilistic language understanding separate from deterministic computation:
 
-## Tech Stack
+```text
+Natural Language
+       ↓
+LLM Interpretation
+       ↓
+Mathematical Intent
+       ↓
+Deterministic Evaluation
+       ↓
+Mathematical Result
+       ↓
+Natural Language Response
+```
 
-| Area                   | Technology                         |
-| ---------------------- | ---------------------------------- |
-| Language               | Python 3.14                        |
-| API                    | FastAPI                            |
-| ASGI Server            | Uvicorn                            |
-| Validation             | Pydantic                           |
-| Package Management     | Poetry                             |
-| Interactive UI         | Streamlit                          |
-| LLM Integration        | LLM Service abstraction            |
-| Mathematical Execution | Deterministic Expression Evaluator |
-| Testing                | Pytest                             |
-| Containerization       | Docker / Docker Compose            |
+The LLM interprets the user's request, while the application remains responsible for the actual mathematical computation.
 
 ---
 
-# Generation 2 Architecture
+## Architecture
 
-The current architecture has two application entry points.
+The current implementation is **Generation 2**.
 
-### FastAPI
+Generation 2 expands the original Streamlit-centered application with a FastAPI backend and a dedicated Next.js / TypeScript frontend, while retaining Streamlit as an existing interface.
 
-The HTTP API follows:
+### HTTP Application Flow
 
 ```text
 Client
@@ -92,18 +68,12 @@ WriterAgent
 Response
 ```
 
-The **ChatService** is the application-layer entry point for the `/chat` HTTP endpoint.
-
-The router is intentionally kept thin and delegates application behavior to the service layer.
-
-### Streamlit
-
-The Streamlit application currently follows:
+### Streamlit Application Flow
 
 ```text
 User
   ↓
-Streamlit Interface
+Streamlit
   ↓
 ChatbotOrchestrator
   ↓
@@ -118,281 +88,184 @@ WriterAgent
 Response
 ```
 
-The two entry points therefore share the core orchestration components while exposing different interfaces.
+The two interfaces currently have different entry paths. The FastAPI `/chat` flow uses the application-layer `ChatService`, while the Streamlit entry point continues to interact directly with the `ChatbotOrchestrator`.
+
+This reflects the current implementation without presenting the architecture as more unified than it is.
 
 ---
 
-## Application Flow
+## Key Engineering Decisions
 
-For an HTTP request, the main processing flow is:
+### Deterministic Mathematical Execution
+
+Mathematical expressions are evaluated by the application's deterministic evaluator rather than relying on an LLM to produce the numerical result.
 
 ```text
-HTTP Request
-    ↓
-ChatRequestSchema
-    ↓
-Chat Router
-    ↓
-ChatService
-    ↓
-ChatbotOrchestrator
-    ↓
-ContextResolver
-    ↓
-MathematicalAgent
-    ↓
+User Request
+     ↓
+LLM Interpretation
+     ↓
+Mathematical Expression
+     ↓
 ExpressionEvaluator
-    ↓
+     ↓
+Deterministic Result
+     ↓
 WriterAgent
-    ↓
-ChatResponseMapper
-    ↓
-ChatResponseSchema
-    ↓
-HTTP Response
+     ↓
+Final Response
 ```
 
-### Responsibilities
+This keeps numerical computation predictable and testable.
 
-| Component           | Responsibility                                                     |
-| ------------------- | ------------------------------------------------------------------ |
-| FastAPI Router      | HTTP routing and dependency injection                              |
-| ChatService         | Application-layer entry point for `/chat`                          |
-| ChatbotOrchestrator | Coordinates the conversational processing pipeline                 |
-| ContextResolver     | Resolves conversational context and mathematical references        |
-| MathematicalAgent   | Interprets mathematical intent and prepares mathematical execution |
-| ExpressionEvaluator | Performs deterministic mathematical evaluation                     |
-| WriterAgent         | Generates the final natural-language response                      |
-| ChatResponseMapper  | Converts application output into the API response schema           |
+### Application Layer
+
+`ChatService` provides the application-level entry point for the FastAPI `/chat` use case.
+
+The API layer therefore remains focused on HTTP concerns while application orchestration stays outside the router.
+
+### Dependency Injection
+
+Dependencies are explicitly constructed and injected at the application boundaries, reducing direct coupling between components.
+
+### Structured API Contracts
+
+Pydantic schemas define explicit request and response contracts for the HTTP API.
+
+### Conversational Context
+
+Conversation history and message metadata are preserved so that follow-up mathematical requests can use previous results as context.
 
 ---
 
-# Deterministic Mathematical Execution
+## Capabilities
 
-A core architectural principle of the platform is the separation between **language understanding** and **mathematical execution**.
+The current application supports:
 
-The LLM may be used to interpret the user's request, but deterministic mathematical operations are handled by the application's expression evaluator.
+- Conversational mathematical interactions
+- Context-aware follow-up questions
+- Addition
+- Subtraction
+- Multiplication
+- Division
+- Parenthesized expressions
+- Operator precedence
+- Follow-up calculations using previous results
+- LLM-assisted intent interpretation
+- Deterministic mathematical evaluation
+- Multiple LLM providers
+- Structured API contracts
+- Conversation history and metadata preservation
 
-Conceptually:
+---
+
+## LLM Providers
+
+The backend currently integrates with:
+
+- OpenAI
+- Google Gemini
+- Ollama
+
+Provider credentials and model configuration are supplied through the application environment.
+
+---
+
+## Tech Stack
+
+| Area | Technology |
+| --- | --- |
+| Language | Python 3.14+ |
+| API Framework | FastAPI |
+| ASGI Server | Uvicorn |
+| Validation | Pydantic |
+| Package Management | Poetry |
+| Interactive Interface | Streamlit |
+| Frontend | Next.js / TypeScript |
+| LLM Providers | OpenAI, Google Gemini, Ollama |
+| Testing | Pytest |
+| Linting | Ruff |
+| Formatting | Black |
+| Containerization | Docker / Docker Compose |
+
+---
+
+## API
+
+### `POST /chat`
+
+Processes a conversational request through the backend application pipeline.
+
+The endpoint uses explicit Pydantic contracts:
+
+- `ChatMessageSchema`
+- `ChatRequestSchema`
+- `ChatResponseSchema`
+
+A request contains conversation history, including message content and metadata.
+
+A response contains the generated content and associated metadata.
+
+For mathematical interactions, the API can expose the calculated result through the `math_result` metadata field.
+
+Internal orchestration state such as `last_math_result` is used for contextual processing and is not part of the external API contract.
+
+### Interactive Documentation
+
+When the API is running, FastAPI provides interactive documentation at:
 
 ```text
-Natural Language
-      ↓
-LLM / Intent Interpretation
-      ↓
-Mathematical Context
-      ↓
-Deterministic Expression Evaluation
-      ↓
-Mathematical Result
-      ↓
-Natural Language Response
-```
-
-This prevents the LLM from being treated as the source of truth for deterministic numerical calculations.
-
----
-
-# Conversation Context
-
-The platform supports conversational mathematical interactions by preserving conversation history and metadata.
-
-For example, a mathematical result can be stored in response metadata and subsequently used by the context resolution layer when processing a follow-up request.
-
-The external response uses:
-
-```text
-math_result
-```
-
-for mathematical result metadata.
-
-The orchestration layer may also maintain internal contextual state such as:
-
-```text
-last_math_result
-```
-
-for resolving references to previous calculations.
-
-Internal context handling is not exposed as an API field.
-
----
-
-# API
-
-## POST `/chat`
-
-Processes a conversational request through the application pipeline.
-
-### Request
-
-The endpoint receives a `ChatRequestSchema` containing the conversation history.
-
-Conceptually:
-
-```json
-{
-  "history": [
-    {
-      "role": "user",
-      "content": "What is 25 * 4?",
-      "metadata": {}
-    }
-  ]
-}
-```
-
-### Response
-
-The endpoint returns a `ChatResponseSchema` containing the generated response and associated metadata.
-
-Conceptually:
-
-```json
-{
-  "content": "The result is 100.",
-  "metadata": {
-    "math_result": 100,
-    "expression": "25 * 4",
-    "language": "en"
-  }
-}
-```
-
-### Official Schemas
-
-The API uses the following schemas:
-
-* `ChatMessageSchema`
-* `ChatRequestSchema`
-* `ChatResponseSchema`
-
-`ChatMessageSchema` represents an individual conversation message and supports message metadata.
-
-`ChatRequestSchema` contains the conversation history.
-
-`ChatResponseSchema` represents the final API response and its metadata.
-
----
-
-# Project Structure
-
-```text
-ai-assistant-platform/
-│
-├── ai_assistant_platform/
-│   ├── api/
-│   │   ├── dependencies.py
-│   │   ├── routers/
-│   │   │   └── chat.py
-│   │   └── schemas/
-│   │       ├── __init__.py
-│   │       ├── chat_message.py
-│   │       ├── chat_request.py
-│   │       └── chat_response.py
-│   │
-│   ├── agents/
-│   │   ├── mathematical_agent.py
-│   │   └── writer_agent.py
-│   │
-│   ├── context/
-│   │   └── context_resolver.py
-│   │
-│   ├── services/
-│   │   └── chat_service.py
-│   │
-│   └── ...
-│
-├── tests/
-│
-├── app.py
-├── main.py
-├── Dockerfile
-├── docker-compose.yml
-├── pyproject.toml
-├── poetry.lock
-└── README.md
+http://localhost:8000/docs
 ```
 
 ---
 
-# Configuration
+## Getting Started
 
-Environment-specific configuration is provided through environment variables.
+### Prerequisites
 
-The project includes an example environment file:
+- Python 3.14+
+- Poetry
+- Docker
+- Docker Compose
 
-```text
-.env.exemple
-```
-
-Create the local environment configuration according to the variables required by the configured LLM service and application environment.
-
-Secrets should not be committed to the repository.
-
----
-
-# Getting Started
-
-## Prerequisites
-
-Make sure the following tools are available:
-
-* Python 3.14
-* Poetry
-* Docker
-* Docker Compose
-
----
-
-## Installation
-
-Install the project dependencies with Poetry:
+### Install Dependencies
 
 ```bash
 poetry install
 ```
 
-Activate the Poetry environment or execute commands through Poetry:
-
-```bash
-poetry shell
-```
-
-or:
+Run commands inside the Poetry environment with:
 
 ```bash
 poetry run <command>
 ```
 
----
+### Configuration
 
-# Running the Application
+Create the local environment file from:
 
-## Streamlit
-
-The Streamlit interface is started through:
-
-```bash
-streamlit run app.py
+```text
+.env.example
 ```
 
-The application provides an interactive conversational interface.
+Configure the variables required by the selected provider and application environment.
 
----
+Never commit credentials or other secrets to the repository.
 
-## FastAPI
-
-Start the API with Uvicorn:
+### Run Streamlit
 
 ```bash
-uvicorn main:app --reload
+poetry run streamlit run app.py
 ```
 
-The API is exposed on the configured host and port.
+### Run FastAPI
 
-The default development configuration uses:
+```bash
+poetry run uvicorn main:app --reload
+```
+
+The API will be available at:
 
 ```text
 http://localhost:8000
@@ -400,42 +273,24 @@ http://localhost:8000
 
 ---
 
-# API Documentation
+## Docker
 
-FastAPI automatically provides interactive API documentation.
+The project includes Docker Compose configuration for the Generation 2 environment.
 
-When the API is running, the documentation is available at:
-
-```text
-http://localhost:8000/docs
-```
-
-The OpenAPI schema is also exposed by FastAPI.
-
----
-
-# Docker
-
-The project includes Docker support for the development environment.
-
-Build and start the services with:
+Start the configured environment with:
 
 ```bash
 docker compose up --build
 ```
 
-The current Compose configuration includes:
+The environment includes the backend and Next.js frontend.
 
-* Backend — FastAPI
-* Frontend — Next.js / TypeScript
+| Service | Port |
+| --- | --- |
+| Backend | `8000` |
+| Frontend | `3000` |
 
-The backend is exposed on port:
-
-```text
-8000
-```
-
-The frontend is configured to communicate with the backend through:
+The frontend communicates with the backend through:
 
 ```text
 NEXT_PUBLIC_API_URL
@@ -443,80 +298,119 @@ NEXT_PUBLIC_API_URL
 
 ---
 
-# Testing
+## Testing and CI
 
-The project uses **Pytest** for automated testing.
+The project uses Pytest for automated testing.
 
 Run the test suite with:
 
 ```bash
-pytest
+poetry run pytest
 ```
 
-The test suite covers the implemented application behavior and architectural flows.
+The backend CI pipeline validates pull requests through:
+
+1. Dependency installation
+2. Ruff
+3. Black
+4. Pytest
+
+This provides automated validation for code quality, formatting, and tests.
 
 ---
 
-# Engineering Practices
+## Project Evolution
 
-The project follows several architectural principles:
+The AI Assistant Platform evolved through two architectural generations.
 
-### Separation of Responsibilities
+### Generation 1 — Conversational Foundation
 
-HTTP concerns, application orchestration, context resolution, mathematical execution, and response generation are separated into dedicated components.
+Generation 1 established the project as a Streamlit-centered AI mathematical assistant.
 
-### Dependency Injection
+The main focus was building the conversational experience and the foundations for:
 
-Application dependencies are provided through explicit dependency construction rather than coupling the HTTP layer directly to concrete orchestration behavior.
+- Natural-language mathematical requests
+- Conversational context
+- Deterministic expression evaluation
+- LLM-assisted interpretation and response generation
+- Multiple LLM providers
+- Modular components and dependency injection
+- Automated testing
 
-### Thin API Layer
+The processing flow was centered around the `ChatbotOrchestrator`.
 
-The FastAPI router is responsible for HTTP concerns and delegates application processing to `ChatService`.
+### Generation 2 — API-Oriented Platform
 
-### Deterministic Computation
+Generation 2 introduced an explicit FastAPI backend and a Next.js / TypeScript frontend while preserving Streamlit as an existing interface.
 
-Mathematical expressions are evaluated by the deterministic expression evaluator rather than relying on LLM-generated numerical results.
+The main architectural evolution was the introduction of a clear application layer through `ChatService` and an explicit HTTP contract around the `/chat` endpoint.
 
-### Structured Contracts
+This transition moves the project from a primarily UI-centered application toward a platform that can support multiple interfaces while keeping core application responsibilities separated.
 
-Pydantic schemas define the API request and response contracts.
+> **Generation 2 is an architectural stage, not backend version `2.0.0`.**
 
-### Context Preservation
+### Current State
 
-Conversation history and message metadata are preserved across the application flow to support contextual interactions.
+The project is currently in **Generation 2**, and the backend follows independent Semantic Versioning with the current release at **`1.1.0`**.
 
----
+### Future Direction — Generation 3
 
-# Current Scope
+Generation 3 is a future architectural direction and is **not part of the current implementation**.
 
-The current implementation is **Generation 2: Streamlit + FastAPI**.
+The intended direction is a more backend-centered architecture based on FastAPI, with Streamlit eventually removed from the target application architecture.
 
-The project currently focuses on:
-
-* conversational interaction
-* mathematical intent interpretation
-* deterministic mathematical execution
-* contextual follow-up interactions
-* FastAPI `/chat` API
-* Streamlit interface
-* structured request/response schemas
-* modular application components
-* automated testing
-* Docker-based execution
+This transition is intentionally deferred until the Generation 2 architecture is sufficiently consolidated.
 
 ---
 
-# Out of Scope
+## Versioning
 
-The following does not belong to the current Generation 2 implementation:
+The backend follows **Semantic Versioning (SemVer)** independently from the frontend.
 
-* replacing Streamlit with a FastAPI-only application
-* removing the Streamlit interface
-* introducing a new application generation
-* moving deterministic mathematical computation to the frontend
-* delegating mathematical execution entirely to an LLM
+Current backend version:
 
-The current architecture intentionally preserves **Streamlit + FastAPI** as the Generation 2 application model.
+```text
+1.1.0
+```
+
+Generation labels and release versions have different meanings:
+
+| Concept | Meaning |
+| --- | --- |
+| Generation 1 | Initial architectural stage |
+| Generation 2 | Current architectural stage |
+| `1.1.0` | Current backend release |
+| `2.0.0` | Not implied by Generation 2 |
+
+---
+
+## Current Scope
+
+The current implementation is **Generation 2** and focuses on:
+
+- Conversational mathematical interaction
+- Deterministic mathematical execution
+- Contextual follow-up interactions
+- FastAPI `/chat` API
+- Streamlit interface
+- Next.js / TypeScript frontend
+- Structured request/response schemas
+- Modular application components
+- LLM provider integration
+- Automated testing and CI
+- Docker-based execution
+
+---
+
+## Out of Scope
+
+The following are outside the current Generation 2 implementation:
+
+- Generation 3 implementation
+- Replacing Generation 2 with the future architecture
+- Removing Streamlit from the current Generation 2 environment
+- Moving deterministic mathematical computation to the frontend
+- Delegating mathematical execution entirely to an LLM
 
 ---
 
@@ -524,4 +418,12 @@ The current architecture intentionally preserves **Streamlit + FastAPI** as the 
 
 This project is licensed under the **MIT License**.
 
-See the [LICENSE](LICENSE) file for the complete license text.
+See `LICENSE` for the complete license text.
+
+---
+
+## Author
+
+**Ladson Sá**
+
+Software Engineering student and backend developer focused on software architecture, Python, AI, and backend engineering.
