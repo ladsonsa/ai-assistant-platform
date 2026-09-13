@@ -54,10 +54,14 @@ def orchestrator(
     Returns:
         ChatbotOrchestrator: An instance of ChatbotOrchestrator configured for testing.
     """
+    llm_service = MagicMock()
+    llm_service.provider_name = "mock"
+
     return ChatbotOrchestrator(
         context_resolver=context_resolver,
         mathematical_agent=mathematical_agent,
         writer_agent=writer_agent,
+        llm_service=llm_service,
     )
 
 

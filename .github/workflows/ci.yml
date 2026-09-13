@@ -1,0 +1,44 @@
+# Backend CI pipeline for pull request validation.
+# Runs automated quality checks before merging changes into dev.
+
+name: Backend CI
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - main
+
+jobs:
+  quality:
+    name: Quality Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          # Keep the CI runtime aligned with the project's supported Python version.
+          python-version: "3.14"
+
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Ruff
+        run: poetry run ruff check .
+
+      - name: Black
+        run: poetry run black --check .
+
+      - name: Pytest with coverage
+        run: poetry run pytest --cov=. --cov-report=term-missing
+
+      # Building the image here validates the Dockerfile without publishing or deploying it.
+      - name: Build Docker image
+        run: docker build -t ai-assistant-platform:ci .
