@@ -106,19 +106,29 @@ The Streamlit application currently follows:
 
 ```text
 User
-  ↓
-Streamlit Interface
-  ↓
+  │
+  ▼
+Streamlit
+  │
+  ▼
+Conversation Memory
+  │
+  ▼
 ChatbotOrchestrator
-  ↓
+  │
+  ▼
 ContextResolver
-  ↓
+  │
+  ▼
 MathematicalAgent
-  ↓
+  │
+  ▼
 ExpressionEvaluator
-  ↓
+  │
+  ▼
 WriterAgent
-  ↓
+  │
+  ▼
 Response
 ```
 
@@ -595,7 +605,47 @@ See the [LICENSE](LICENSE) file for the complete license text.
 
 ---
 
-## Author
+Before opening a Pull Request, run:
+
+```bash
+poetry run ruff check .
+poetry run ruff format .
+poetry run pytest
+```
+
+Please follow:
+
+- Conventional Commits
+- PEP 8
+- Static typing
+- Automated tests for new features
+
+---
+
+# License
+
+This project is licensed under the MIT License.
+
+See the `LICENSE` file for more information.
+
+---
+
+# Acknowledgements
+
+Built with:
+
+- Python
+- Streamlit
+- OpenAI
+- Google Gemini
+- Ollama
+- Poetry
+- Pytest
+- Ruff
+
+---
+
+# Author
 
 **Ladson Sá**
 
