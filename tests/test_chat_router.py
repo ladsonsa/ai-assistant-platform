@@ -1,3 +1,4 @@
+import json
 from unittest.mock import MagicMock
 
 from fastapi import FastAPI
@@ -168,3 +169,88 @@ def test_chat_rejects_empty_history() -> None:
     )
 
     assert response.status_code == 400
+
+
+def test_chat_rejects_history_over_limit() -> None:
+    """Tests that history with more than 100 messages returns HTTP 422."""
+    client, _ = create_test_client()
+
+    response = client.post(
+        "/chat",
+        json={
+            "history": [
+                {
+                    "role": "user",
+                    "content": "message",
+                    "metadata": {},
+                }
+                for _ in range(101)
+            ],
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_chat_rejects_content_over_limit() -> None:
+    """Tests that content longer than 8000 characters returns HTTP 422."""
+    client, _ = create_test_client()
+
+    response = client.post(
+        "/chat",
+        json={
+            "history": [
+                {
+                    "role": "user",
+                    "content": "a" * 8_001,
+                    "metadata": {},
+                }
+            ],
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_chat_rejects_role_over_limit() -> None:
+    """Tests that role longer than 32 characters returns HTTP 422."""
+    client, _ = create_test_client()
+
+    response = client.post(
+        "/chat",
+        json={
+            "history": [
+                {
+                    "role": "a" * 33,
+                    "content": "message",
+                    "metadata": {},
+                }
+            ],
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_chat_rejects_metadata_over_limit() -> None:
+    """Tests that metadata exceeding 8192 UTF-8 JSON bytes returns HTTP 422."""
+    metadata = {"value": "a" * 8_180}
+
+    assert len(json.dumps(metadata, ensure_ascii=False).encode("utf-8")) == 8_193
+
+    client, _ = create_test_client()
+
+    response = client.post(
+        "/chat",
+        json={
+            "history": [
+                {
+                    "role": "user",
+                    "content": "message",
+                    "metadata": metadata,
+                }
+            ],
+        },
+    )
+
+    assert response.status_code == 422

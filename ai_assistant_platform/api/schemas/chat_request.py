@@ -1,6 +1,10 @@
 from typing import List
-from pydantic import BaseModel
+
+from pydantic import BaseModel, Field
+
 from ai_assistant_platform.api.schemas.chat_message import ChatMessageSchema
+
+MAX_HISTORY_LENGTH = 100
 
 
 class ChatRequestSchema(BaseModel):
@@ -11,4 +15,4 @@ class ChatRequestSchema(BaseModel):
             the conversation history.
     """
 
-    history: List[ChatMessageSchema]
+    history: List[ChatMessageSchema] = Field(max_length=MAX_HISTORY_LENGTH)
