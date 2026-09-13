@@ -62,6 +62,4 @@ class MathematicalAgent:
             result,
         )
 
-        return self._evaluator.evaluate(
-            expression,
-        )
+        return result

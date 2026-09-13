@@ -29,10 +29,14 @@ def orchestrator(
     mathematical_agent: MagicMock,
     writer_agent: MagicMock,
 ) -> ChatbotOrchestrator:
+    llm_service = MagicMock()
+    llm_service.provider_name = "mock"
+
     return ChatbotOrchestrator(
         context_resolver=context_resolver,
         mathematical_agent=mathematical_agent,
         writer_agent=writer_agent,
+        llm_service=llm_service,
     )
 
 
