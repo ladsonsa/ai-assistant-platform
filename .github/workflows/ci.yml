@@ -37,7 +37,7 @@ jobs:
         run: poetry run black --check .
 
       - name: Pytest with coverage
-        run: poetry run pytest
+        run: poetry run pytest --cov=. --cov-report=term-missing
 
       # Building the image here validates the Dockerfile without publishing or deploying it.
       - name: Build Docker image
