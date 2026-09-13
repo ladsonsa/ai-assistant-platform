@@ -23,13 +23,17 @@ def create_test_client(
             when a chat service is provided.
     """
     app = FastAPI()
-    app.include_router(router)
 
-    orchestrator = None
-
-    if chat_service is not None:
+    if chat_service is None:
+        orchestrator = MagicMock()
+        chat_service = ChatService(
+            orchestrator=orchestrator,
+        )
+    else:
         orchestrator = chat_service._orchestrator
-        app.dependency_overrides[get_chat_service] = lambda: chat_service
+
+    app.include_router(router)
+    app.dependency_overrides[get_chat_service] = lambda: chat_service
 
     return TestClient(app), orchestrator
 
