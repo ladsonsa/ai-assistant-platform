@@ -1,6 +1,6 @@
 [project]
 name = "ai-assistant-platform"
-version = "0.1.0"
+version = "1.1.0"
 description = "An AI-powered chatbot that processes and solves basic mathematical operations (addition, subtraction, multiplication, division) and simple equations in multiple languages."
 authors = [
     {name = "Ládson Sá",email = "123712890+PreGUU@users.noreply.github.com"}
