@@ -360,3 +360,75 @@ def test_previous_result_is_preserved(
     assert context.expression == "15*2"
     assert context.previous_result == 15
     assert context.use_previous_result is False
+
+
+def test_llm_resolves_natural_language_word_problem(
+    resolver: ContextResolver,
+    llm_service: MagicMock,
+) -> None:
+    """Tests that natural-language arithmetic reaches the LLM candidate path."""
+
+    llm_service.generate_response.return_value = {
+        "content": json.dumps(
+            {
+                "is_math": True,
+                "expression": "3",
+                "language": "pt",
+            }
+        )
+    }
+
+    context = resolver.resolve(
+        user_message=(
+            "Maria tem 3 maçãs, ela costuma comer 1 a cada 2 horas. "
+            "Quantas maçãs em um dia Maria comeu?"
+        ),
+        last_math_result=None,
+    )
+
+    assert context is not None
+    assert context.expression == "3"
+    assert context.language == "pt"
+
+    llm_service.generate_response.assert_called_once()
+
+
+def test_direct_expression_preserves_previous_language(
+    resolver: ContextResolver,
+    llm_service: MagicMock,
+) -> None:
+    context = resolver.resolve(
+        user_message="2 + 2",
+        last_math_result=None,
+        last_language="pt",
+    )
+
+    assert context is not None
+    assert context.expression == "2+2"
+    assert context.language == "pt"
+
+    llm_service.generate_response.assert_not_called()
+
+
+def test_unsupported_language_falls_back_to_previous_language(
+    resolver: ContextResolver,
+    llm_service: MagicMock,
+) -> None:
+    llm_service.generate_response.return_value = {
+        "content": json.dumps(
+            {
+                "is_math": True,
+                "expression": "2+2",
+                "language": "xx",
+            }
+        )
+    }
+
+    context = resolver.resolve(
+        user_message="calculate",
+        last_math_result=None,
+        last_language="pt",
+    )
+
+    assert context is not None
+    assert context.language == "pt"

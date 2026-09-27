@@ -38,6 +38,7 @@ def test_process_math_message(
     context_resolver.resolve.assert_called_once_with(
         user_message="2 + 2",
         last_math_result=None,
+        last_language=None,
     )
 
     mathematical_agent.execute.assert_called_once_with(

@@ -96,6 +96,7 @@ def test_context_resolver_receives_last_math_result(
     context_resolver.resolve.assert_called_once_with(
         user_message="agora divida por 2",
         last_math_result=30,
+        last_language="pt",
     )
 
 

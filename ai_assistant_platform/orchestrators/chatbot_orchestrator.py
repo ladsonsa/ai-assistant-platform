@@ -131,13 +131,14 @@ class ChatbotOrchestrator:
             len(conversation_history),
         )
 
-        last_math_result = self._extract_last_math_result(
+        last_math_result, last_language = self._extract_last_math_context(
             conversation_history,
         )
 
         math_context = self._context_resolver.resolve(
             user_message=user_message,
             last_math_result=last_math_result,
+            last_language=last_language,
         )
 
         if math_context is None:
@@ -244,33 +245,25 @@ class ChatbotOrchestrator:
             ),
         }
 
-    def _extract_last_math_result(
+    def _extract_last_math_context(
         self,
         conversation_history: list[dict],
-    ) -> float | None:
-        """Extracts the most recent mathematical result from the conversation history.
+    ) -> tuple[float | None, str | None]:
+        """Extracts the most recent mathematical result and language."""
 
-        Args:
-            conversation_history (list[dict]): The historical messages of the conversation.
-
-        Returns:
-            float | None: The last mathematical result value as a float, or None if not found.
-
-        Raises:
-            None
-        """
-        for message in reversed(
-            conversation_history,
-        ):
+        for message in reversed(conversation_history):
             metadata = message.get(
                 "metadata",
                 {},
             )
 
             if "math_result" in metadata:
-                return metadata["math_result"]
+                return (
+                    metadata["math_result"],
+                    metadata.get("language"),
+                )
 
-        return None
+        return None, None
 
     def _refusal_message(
         self,

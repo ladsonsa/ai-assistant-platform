@@ -59,6 +59,7 @@ class ContextResolver:
         self,
         user_message: str,
         last_math_result: float | None,
+        last_language: str | None = None,
     ) -> MathContext | None:
         """Resolves user input into a MathContext object using deterministic extraction or LLM analysis.
 
@@ -84,6 +85,7 @@ class ContextResolver:
         if expression is not None:
             language = self._detect_language(
                 user_message,
+                fallback_language=last_language,
             )
             resolved_expression = self._resolve_previous_result(
                 expression=expression,
@@ -145,9 +147,8 @@ class ContextResolver:
         )
 
         language = self._normalize_language(
-            data.get(
-                "language",
-            )
+            data.get("language"),
+            fallback_language=last_language,
         )
 
         logger.info(
@@ -368,10 +369,10 @@ class ContextResolver:
         lowered = text.lower()
 
         if re.search(
-            r"[\+\-\*/()]",
+            r"\d",
             lowered,
         ):
-            logger.debug("Math candidate detected by operator presence")
+            logger.debug("Math candidate detected by numeric content")
             return True
 
         math_words = (
@@ -424,15 +425,8 @@ class ContextResolver:
     def _detect_language(
         self,
         text: str,
+        fallback_language: str | None = None,
     ) -> str:
-        """Performs basic language detection based on keyword presence.
-
-        Args:
-            text (str): The text content to analyze.
-
-        Returns:
-            str: The detected two-letter ISO language code (defaults to 'en').
-        """
         lowered = text.lower()
 
         if any(
@@ -472,37 +466,32 @@ class ContextResolver:
         ):
             return "es"
 
-        return "en"
+        normalized_fallback = self._normalize_language(
+            fallback_language,
+        )
+
+        return normalized_fallback
 
     def _normalize_language(
         self,
         language: str | None,
+        fallback_language: str | None = None,
     ) -> str:
-        """Normalizes an incoming language string to a supported two-letter code.
+        if language:
+            normalized = language.lower().split("-")[0]
 
-        Args:
-            language (str | None): Raw language string or code to normalize.
+            if normalized in self.SUPPORTED_LANGUAGES:
+                return normalized
 
-        Returns:
-            str: A valid supported language code, defaulting to 'en' if invalid or missing.
-        """
-        if not language:
-            logger.debug(
-                "Language not provided. Falling back to en",
+            logger.warning(
+                "Unsupported language received language=%s",
+                language,
             )
-            return "en"
 
-        language = language.lower()
+        if fallback_language:
+            fallback = fallback_language.lower().split("-")[0]
 
-        if language in self.SUPPORTED_LANGUAGES:
-            return language
+            if fallback in self.SUPPORTED_LANGUAGES:
+                return fallback
 
-        normalized = language[:2]
-
-        logger.debug(
-            "Language normalized language=%s normalized=%s",
-            language,
-            normalized,
-        )
-
-        return normalized
+        return "en"
