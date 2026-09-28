@@ -6,7 +6,7 @@ from ai_assistant_platform.api.routers.chat import router as chat_router
 
 app = FastAPI(
     title="AI Assistant Platform API",
-    version="1.0.0",
+    version="1.1.0",
 )
 
 app.add_middleware(
