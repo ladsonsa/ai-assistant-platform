@@ -1,3 +1,5 @@
+import asyncio
+
 from ai_assistant_platform.api.exceptions import (
     EmptyConversationError,
 )
@@ -65,7 +67,8 @@ class ChatService:
         user_message = history[-1]["content"]
         conversation_history = history[:-1]
 
-        response = self._orchestrator.process_message(
+        response = await asyncio.to_thread(
+            self._orchestrator.process_message,
             user_message=user_message,
             conversation_history=conversation_history,
         )
