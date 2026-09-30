@@ -338,7 +338,7 @@ Environment-specific configuration is provided through environment variables.
 The current repository uses:
 
 ```text
-.env.exemple
+.env.example
 ```
 
 for the environment configuration example.

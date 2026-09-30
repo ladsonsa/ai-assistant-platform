@@ -211,3 +211,41 @@ def test_valid_custom_configuration_is_accepted(
     assert module.TOP_P == 0
     assert module.FREQUENCY_PENALTY == -2
     assert module.PRESENCE_PENALTY == 2
+
+
+def test_cors_allowed_origins(monkeypatch):
+    """CORS allowed origins are parsed from the environment."""
+    module = reload_settings(
+        monkeypatch,
+        CORS_ALLOWED_ORIGINS=(
+            "http://localhost:3000, "
+            "https://app.example.com, , "
+            "https://admin.example.com"
+        ),
+    )
+
+    assert module.CORS_ALLOWED_ORIGINS == [
+        "http://localhost:3000",
+        "https://app.example.com",
+        "https://admin.example.com",
+    ]
+
+
+def test_cors_allowed_origins_are_loaded_from_environment(
+    monkeypatch: _pytest.monkeypatch.MonkeyPatch,
+) -> None:
+    """Tests that CORS allowed origins are parsed from the environment."""
+    module = reload_settings(
+        monkeypatch,
+        CORS_ALLOWED_ORIGINS=(
+            "http://localhost:3000, "
+            "https://app.example.com, , "
+            "https://admin.example.com"
+        ),
+    )
+
+    assert module.CORS_ALLOWED_ORIGINS == [
+        "http://localhost:3000",
+        "https://app.example.com",
+        "https://admin.example.com",
+    ]

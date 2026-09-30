@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from ai_assistant_platform.api.routers.chat import router as chat_router
+from ai_assistant_platform.config.settings import CORS_ALLOWED_ORIGINS
 
 """FastAPI application module configuring CORS middleware and registering route handlers."""
 
@@ -11,7 +12,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=CORS_ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
