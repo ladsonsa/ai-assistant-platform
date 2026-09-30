@@ -4,6 +4,7 @@ from ai_assistant_platform.config.logging_config import (
     get_logger,
 )
 from ai_assistant_platform.config.settings import (
+    LLM_TIMEOUT_SECONDS,
     MAX_TOKENS,
     OLLAMA_MODEL,
     TEMPERATURE,
@@ -28,7 +29,10 @@ class OllamaProvider(BaseLLMProvider):
             "Initializing Ollama provider model=%s",
             self.model_name,
         )
-        self.client = Client()
+        
+        self.client = Client(
+            timeout=LLM_TIMEOUT_SECONDS,
+        )
 
     def generate_response(
         self,

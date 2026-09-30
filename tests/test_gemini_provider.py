@@ -1,4 +1,5 @@
 from unittest.mock import MagicMock, patch
+from google.genai.types import HttpOptions
 
 import pytest
 
@@ -30,7 +31,12 @@ def test_gemini_provider_initializes_client() -> None:
         ) as mock_client,
     ):
         provider = GeminiProvider()
-        mock_client.assert_called_once_with(api_key="test-key")
+        mock_client.assert_called_once_with(
+            api_key="test-key",
+            http_options=HttpOptions(
+                timeout=60000,
+            ),
+        )
         assert provider.client is mock_client.return_value
 
 

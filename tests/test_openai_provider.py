@@ -31,7 +31,11 @@ def test_openai_provider_initializes_client() -> None:
         ) as mock_openai,
     ):
         provider = OpenAIProvider()
-        mock_openai.assert_called_once_with(api_key="test-key")
+        mock_openai.assert_called_once_with(
+            api_key="test-key",
+            timeout=60,
+            max_retries=0,
+        )
         assert provider.client is mock_openai.return_value
 
 

@@ -1,4 +1,5 @@
 from google import genai
+from google.genai.types import HttpOptions
 
 from ai_assistant_platform.config.logging_config import (
     get_logger,
@@ -6,6 +7,7 @@ from ai_assistant_platform.config.logging_config import (
 from ai_assistant_platform.config.settings import (
     GEMINI_API_KEY,
     GEMINI_MODEL,
+    LLM_TIMEOUT_SECONDS,
     MAX_TOKENS,
     TEMPERATURE,
     TOP_P,
@@ -36,6 +38,9 @@ class GeminiProvider(BaseLLMProvider):
 
         self.client = genai.Client(
             api_key=GEMINI_API_KEY,
+            http_options=HttpOptions(
+                timeout=int(LLM_TIMEOUT_SECONDS * 1000),
+            ),
         )
 
     def generate_response(

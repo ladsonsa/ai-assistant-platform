@@ -8,6 +8,7 @@ from ai_assistant_platform.config.logging_config import (
 )
 from ai_assistant_platform.config.settings import (
     FREQUENCY_PENALTY,
+    LLM_TIMEOUT_SECONDS,
     MAX_TOKENS,
     OPENAI_API_KEY,
     OPENAI_MODEL,
@@ -41,6 +42,8 @@ class OpenAIProvider(BaseLLMProvider):
 
         self.client = OpenAI(
             api_key=OPENAI_API_KEY,
+            timeout=LLM_TIMEOUT_SECONDS,
+            max_retries=0,
         )
 
     def generate_response(

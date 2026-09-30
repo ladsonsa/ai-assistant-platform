@@ -11,7 +11,9 @@ def test_ollama_provider_initializes_client() -> None:
         "ai_assistant_platform.llm.providers.ollama_provider.Client",
     ) as mock_client:
         provider = OllamaProvider()
-        mock_client.assert_called_once_with()
+        mock_client.assert_called_once_with(
+            timeout=60,
+        )
         assert provider.client is mock_client.return_value
 
 
