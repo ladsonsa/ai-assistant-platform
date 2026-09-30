@@ -249,3 +249,29 @@ def test_cors_allowed_origins_are_loaded_from_environment(
         "https://app.example.com",
         "https://admin.example.com",
     ]
+
+
+def test_llm_timeout_seconds_must_be_at_least_one(
+    monkeypatch: _pytest.monkeypatch.MonkeyPatch,
+) -> None:
+    """Tests that LLM timeout values below one second are rejected."""
+    with pytest.raises(
+        ValueError,
+        match="LLM_TIMEOUT_SECONDS must be greater than or equal to 1.",
+    ):
+        reload_settings(
+            monkeypatch,
+            LLM_TIMEOUT_SECONDS="0",
+        )
+
+
+def test_llm_timeout_seconds_is_loaded_from_environment(
+    monkeypatch: _pytest.monkeypatch.MonkeyPatch,
+) -> None:
+    """Tests that LLM timeout is loaded from the environment."""
+    module = reload_settings(
+        monkeypatch,
+        LLM_TIMEOUT_SECONDS="30",
+    )
+
+    assert module.LLM_TIMEOUT_SECONDS == 30

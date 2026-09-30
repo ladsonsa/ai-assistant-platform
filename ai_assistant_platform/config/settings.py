@@ -25,6 +25,9 @@ OPENAI_MODEL: str = getenv("OPENAI_MODEL", "gpt-5.4-mini")
 GEMINI_MODEL: str = getenv("GEMINI_MODEL", "gemini-3.1-flash-lite")
 OLLAMA_MODEL: str = getenv("OLLAMA_MODEL", "llama3.2")
 
+LLM_TIMEOUT_SECONDS: float = float(
+    getenv("LLM_TIMEOUT_SECONDS", "60"),
+)
 TEMPERATURE: float = float(getenv("TEMPERATURE", "0"))
 MAX_TOKENS: int = int(getenv("MAX_TOKENS", "512"))
 TOP_P: float = float(getenv("TOP_P", "1"))
@@ -68,6 +71,9 @@ def _validate_settings() -> None:
     }.items():
         if not model or not model.strip():
             raise ValueError(f"{name} must not be empty.")
+
+    if LLM_TIMEOUT_SECONDS < 1:
+        raise ValueError("LLM_TIMEOUT_SECONDS must be greater than or equal to 1.")
 
     if not 0 <= TEMPERATURE <= 2:
         raise ValueError("TEMPERATURE must be between 0 and 2.")
